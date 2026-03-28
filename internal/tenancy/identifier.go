@@ -5,8 +5,10 @@ import (
 	"regexp"
 )
 
-// validIdentifierRe matches safe SQL identifiers: letters, digits, underscores only.
-var validIdentifierRe = regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
+// validIdentifierRe matches safe SQL identifiers: must start with a letter or underscore,
+// followed by letters, digits, or underscores. This mirrors standard SQL identifier rules
+// and prevents injection payloads from being interpolated into DDL statements.
+var validIdentifierRe = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 
 // validateIdentifier returns an error if id contains characters that could enable
 // SQL injection when interpolated into DDL statements (CREATE/DROP/ALTER).

@@ -330,6 +330,15 @@ func TestValidateIdentifier_RejectsEmpty(t *testing.T) {
 	}
 }
 
+func TestValidateIdentifier_RejectsDigitLeadingIdentifiers(t *testing.T) {
+	digitLeading := []string{"1acme", "123", "0_tenant"}
+	for _, id := range digitLeading {
+		if err := validateIdentifier(id); err == nil {
+			t.Errorf("validateIdentifier(%q): expected error for digit-leading identifier", id)
+		}
+	}
+}
+
 func TestValidateIdentifier_RejectsDangerousChars(t *testing.T) {
 	dangerous := []string{
 		"foo; DROP DATABASE admin",
