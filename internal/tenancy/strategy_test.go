@@ -2,6 +2,7 @@ package tenancy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 )
@@ -283,5 +284,122 @@ func TestRowLevel_DeprovisionTenant_Delete_ExecutorError(t *testing.T) {
 	err := r.DeprovisionTenant(context.Background(), "acme", "delete")
 	if err == nil {
 		t.Fatal("expected error when executor fails")
+	}
+}
+
+var errSentinel1 = fmt.Errorf("sentinel-1")
+var errSentinel2 = fmt.Errorf("sentinel-2")
+
+func TestRowLevel_DeprovisionTenant_MultiError_ErrorsIsUnwrapsIndividualErrors(t *testing.T) {
+	// Both tables fail — errors.Is must unwrap individual errors (requires errors.Join, not %v).
+	calls := 0
+	exec := SQLExecutor(func(_ context.Context, _ string, _ ...any) error {
+		calls++
+		if calls == 1 {
+			return errSentinel1
+		}
+		return errSentinel2
+	})
+	r := NewRowLevel("org_id", []string{"users", "orders"}, exec)
+	err := r.DeprovisionTenant(context.Background(), "acme", "delete")
+	if err == nil {
+		t.Fatal("expected error when executor fails")
+	}
+	if !errors.Is(err, errSentinel1) {
+		t.Errorf("errors.Is(err, errSentinel1) = false; errors.Join not used (got: %v)", err)
+	}
+	if !errors.Is(err, errSentinel2) {
+		t.Errorf("errors.Is(err, errSentinel2) = false; errors.Join not used (got: %v)", err)
+	}
+}
+
+// ─── validateIdentifier ───────────────────────────────────────────────────────
+
+func TestValidateIdentifier_ValidInputs(t *testing.T) {
+	valid := []string{"acme", "corp123", "tenant_1", "UPPER", "a", "abc_DEF_123"}
+	for _, id := range valid {
+		if err := validateIdentifier(id); err != nil {
+			t.Errorf("validateIdentifier(%q) returned unexpected error: %v", id, err)
+		}
+	}
+}
+
+func TestValidateIdentifier_RejectsEmpty(t *testing.T) {
+	if err := validateIdentifier(""); err == nil {
+		t.Error("expected error for empty identifier")
+	}
+}
+
+func TestValidateIdentifier_RejectsDangerousChars(t *testing.T) {
+	dangerous := []string{
+		"foo; DROP DATABASE admin",
+		"foo'bar",
+		`foo"bar`,
+		"foo-bar",
+		"foo.bar",
+		"foo bar",
+		"foo/bar",
+		"foo\x00bar",
+	}
+	for _, id := range dangerous {
+		if err := validateIdentifier(id); err == nil {
+			t.Errorf("validateIdentifier(%q): expected error for dangerous identifier", id)
+		}
+	}
+}
+
+// ─── SchemaPerTenant — identifier validation ──────────────────────────────────
+
+func TestSchemaPerTenant_ProvisionTenant_RejectsInvalidTenantID(t *testing.T) {
+	exec := newTestExec()
+	s := NewSchemaPerTenant("t_", exec.fn)
+	err := s.ProvisionTenant(context.Background(), "bad-tenant!")
+	if err == nil {
+		t.Fatal("expected error for invalid tenantID")
+	}
+	if exec.calls != 0 {
+		t.Error("executor should not be called with invalid tenantID")
+	}
+}
+
+func TestSchemaPerTenant_DeprovisionTenant_RejectsInvalidTenantID(t *testing.T) {
+	for _, mode := range []string{"archive", "delete"} {
+		exec := newTestExec()
+		s := NewSchemaPerTenant("t_", exec.fn)
+		err := s.DeprovisionTenant(context.Background(), "bad; DROP", mode)
+		if err == nil {
+			t.Errorf("mode=%q: expected error for invalid tenantID", mode)
+		}
+		if exec.calls != 0 {
+			t.Errorf("mode=%q: executor should not be called with invalid tenantID", mode)
+		}
+	}
+}
+
+// ─── DBPerTenant — identifier validation ─────────────────────────────────────
+
+func TestDBPerTenant_ProvisionTenant_RejectsInvalidTenantID(t *testing.T) {
+	exec := newTestExec()
+	d := NewDBPerTenant(exec.fn)
+	err := d.ProvisionTenant(context.Background(), "bad-tenant!")
+	if err == nil {
+		t.Fatal("expected error for invalid tenantID")
+	}
+	if exec.calls != 0 {
+		t.Error("executor should not be called with invalid tenantID")
+	}
+}
+
+func TestDBPerTenant_DeprovisionTenant_RejectsInvalidTenantID(t *testing.T) {
+	for _, mode := range []string{"archive", "delete"} {
+		exec := newTestExec()
+		d := NewDBPerTenant(exec.fn)
+		err := d.DeprovisionTenant(context.Background(), "bad; DROP", mode)
+		if err == nil {
+			t.Errorf("mode=%q: expected error for invalid tenantID", mode)
+		}
+		if exec.calls != 0 {
+			t.Errorf("mode=%q: executor should not be called with invalid tenantID", mode)
+		}
 	}
 }

@@ -36,6 +36,9 @@ func (s *SchemaPerTenant) TenantFilter(tenantID string) (string, string) {
 
 // ProvisionTenant executes CREATE SCHEMA IF NOT EXISTS for the tenant.
 func (s *SchemaPerTenant) ProvisionTenant(ctx context.Context, tenantID string) error {
+	if err := validateIdentifier(tenantID); err != nil {
+		return fmt.Errorf("schema_per_tenant: provision: invalid tenant ID: %w", err)
+	}
 	sql := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s%s", s.prefix, tenantID)
 	return s.executor(ctx, sql)
 }
@@ -43,6 +46,9 @@ func (s *SchemaPerTenant) ProvisionTenant(ctx context.Context, tenantID string) 
 // DeprovisionTenant archives or drops the tenant's schema.
 // mode "archive" renames the schema; mode "delete" drops it with CASCADE.
 func (s *SchemaPerTenant) DeprovisionTenant(ctx context.Context, tenantID string, mode string) error {
+	if err := validateIdentifier(tenantID); err != nil {
+		return fmt.Errorf("schema_per_tenant: deprovision: invalid tenant ID: %w", err)
+	}
 	switch mode {
 	case "archive":
 		sql := fmt.Sprintf("ALTER SCHEMA %s%s RENAME TO %s%s_archived",

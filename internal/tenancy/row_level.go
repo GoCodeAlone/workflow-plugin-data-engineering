@@ -2,6 +2,7 @@ package tenancy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 )
 
@@ -56,7 +57,7 @@ func (r *RowLevel) DeprovisionTenant(ctx context.Context, tenantID string, mode 
 		}
 	}
 	if len(errs) > 0 {
-		return fmt.Errorf("row_level: deprovision %q errors: %v", tenantID, errs)
+		return fmt.Errorf("row_level: deprovision %q: %w", tenantID, errors.Join(errs...))
 	}
 	return nil
 }
