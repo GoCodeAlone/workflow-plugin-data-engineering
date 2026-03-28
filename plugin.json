@@ -1,0 +1,35 @@
+{
+    "name": "workflow-plugin-data-engineering",
+    "version": "0.1.0",
+    "description": "Data engineering plugin: CDC, lakehouse, time-series, graph, data quality",
+    "author": "GoCodeAlone",
+    "license": "Commercial",
+    "type": "external",
+    "tier": "core",
+    "private": true,
+    "selfHosted": true,
+    "minEngineVersion": "0.3.56",
+    "keywords": ["cdc", "lakehouse", "timeseries", "graph", "data-quality", "multi-tenancy", "debezium", "iceberg"],
+    "homepage": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering",
+    "repository": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering",
+    "capabilities": {
+        "configProvider": false,
+        "moduleTypes": [
+            "cdc.source",
+            "data.tenancy"
+        ],
+        "stepTypes": [
+            "step.cdc_start",
+            "step.cdc_stop",
+            "step.cdc_status",
+            "step.cdc_snapshot",
+            "step.cdc_schema_history",
+            "step.tenant_provision",
+            "step.tenant_deprovision",
+            "step.tenant_migrate"
+        ],
+        "triggerTypes": [
+            "trigger.cdc"
+        ]
+    }
+}

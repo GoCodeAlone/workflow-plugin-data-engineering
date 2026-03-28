@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Configure Go private modules
+        run: git config --global url."https://x-access-token:${{ secrets.RELEASES_TOKEN }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+          GOPRIVATE: github.com/GoCodeAlone/*
+          GONOSUMCHECK: github.com/GoCodeAlone/*
+          GONOSUMDB: github.com/GoCodeAlone/*
