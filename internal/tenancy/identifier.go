@@ -19,7 +19,7 @@ func validateIdentifier(id string) error {
 		return fmt.Errorf("identifier must not be empty")
 	}
 	if !validIdentifierRe.MatchString(id) {
-		return fmt.Errorf("identifier %q contains invalid characters (only [a-zA-Z0-9_] allowed)", id)
+		return fmt.Errorf("identifier %q is invalid (must start with a letter or underscore, followed by [a-zA-Z0-9_])", id)
 	}
 	return nil
 }
