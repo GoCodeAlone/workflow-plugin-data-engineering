@@ -32,7 +32,7 @@ func (s *startStep) Execute(ctx context.Context, _ map[string]any, _ map[string]
 		if cfgErr != nil {
 			return nil, fmt.Errorf("step.cdc_start %q: %w (and no running module: %v)", s.name, cfgErr, err)
 		}
-		provider, cfgErr = newProvider(cfg.Provider)
+		provider, cfgErr = newProvider(cfg)
 		if cfgErr != nil {
 			return nil, fmt.Errorf("step.cdc_start %q: create provider: %w", s.name, cfgErr)
 		}

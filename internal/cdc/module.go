@@ -33,7 +33,7 @@ func NewSourceModule(name string, config map[string]any) (sdk.ModuleInstance, er
 	if err != nil {
 		return nil, fmt.Errorf("cdc.source %q: %w", name, err)
 	}
-	provider, err := newProvider(cfg.Provider)
+	provider, err := newProvider(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("cdc.source %q: %w", name, err)
 	}

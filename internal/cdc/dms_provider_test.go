@@ -405,3 +405,61 @@ func TestDMSProvider_RegisterEventHandler_NotFound(t *testing.T) {
 		t.Fatal("expected error for unknown source")
 	}
 }
+
+// ─── Production wiring tests ─────────────────────────────────────────────────
+
+func TestNewDMSProvider_ParsesConfigFromOptions(t *testing.T) {
+	cfg := SourceConfig{
+		Provider: "dms",
+		Options: map[string]any{
+			"region":                   "us-west-2",
+			"source_endpoint_arn":      "arn:aws:dms:us-west-2:999:endpoint:src",
+			"target_endpoint_arn":      "arn:aws:dms:us-west-2:999:endpoint:tgt",
+			"replication_instance_arn": "arn:aws:dms:us-west-2:999:rep:my-rep",
+			"migration_type":           "full-load-and-cdc",
+		},
+	}
+	p, err := newDMSProvider(cfg)
+	if err != nil {
+		t.Fatalf("newDMSProvider: %v", err)
+	}
+	if p.client == nil {
+		t.Fatal("expected non-nil AWS DMS client")
+	}
+	if p.config.SourceEndpointARN != "arn:aws:dms:us-west-2:999:endpoint:src" {
+		t.Errorf("SourceEndpointARN = %q", p.config.SourceEndpointARN)
+	}
+	if p.config.TargetEndpointARN != "arn:aws:dms:us-west-2:999:endpoint:tgt" {
+		t.Errorf("TargetEndpointARN = %q", p.config.TargetEndpointARN)
+	}
+	if p.config.ReplicationInstanceARN != "arn:aws:dms:us-west-2:999:rep:my-rep" {
+		t.Errorf("ReplicationInstanceARN = %q", p.config.ReplicationInstanceARN)
+	}
+	if p.config.MigrationType != "full-load-and-cdc" {
+		t.Errorf("MigrationType = %q, want full-load-and-cdc", p.config.MigrationType)
+	}
+}
+
+func TestNewDMSProvider_DefaultsMigrationType(t *testing.T) {
+	p, err := newDMSProvider(SourceConfig{Provider: "dms", Options: map[string]any{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.config.MigrationType != "cdc" {
+		t.Errorf("MigrationType = %q, want cdc (default)", p.config.MigrationType)
+	}
+}
+
+func TestNewDMSProvider_EmptyOptionsAllowed(t *testing.T) {
+	// newDMSProvider with no options should succeed (AWS client uses env credentials)
+	p, err := newDMSProvider(SourceConfig{Provider: "dms"})
+	if err != nil {
+		t.Fatalf("newDMSProvider with empty options: %v", err)
+	}
+	if p == nil {
+		t.Fatal("expected non-nil provider")
+	}
+	if p.client == nil {
+		t.Fatal("expected non-nil client")
+	}
+}

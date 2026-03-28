@@ -43,18 +43,18 @@ type SchemaVersion struct {
 	AppliedAt string `json:"applied_at" yaml:"applied_at"`
 }
 
-// newProvider constructs a CDCProvider by name.
-func newProvider(name string) (CDCProvider, error) {
-	switch name {
+// newProvider constructs a CDCProvider from the source configuration.
+func newProvider(cfg SourceConfig) (CDCProvider, error) {
+	switch cfg.Provider {
 	case "bento":
 		return newBentoProvider(), nil
 	case "debezium":
 		return newDebeziumProvider(), nil
 	case "dms":
-		return newDMSProvider(), nil
+		return newDMSProvider(cfg)
 	case "memory":
 		return NewMemoryProvider(), nil
 	default:
-		return nil, fmt.Errorf("unknown CDC provider %q (valid: bento, debezium, dms, memory)", name)
+		return nil, fmt.Errorf("unknown CDC provider %q (valid: bento, debezium, dms, memory)", cfg.Provider)
 	}
 }

@@ -6,9 +6,10 @@ import (
 	"testing"
 )
 
-// testExec captures SQL calls for verification.
+// testExec captures SQL calls and args for verification.
 type testExec struct {
 	queries []string
+	execArgs [][]any      // args per call
 	failAt  map[int]bool // call index (1-based) → should fail
 	calls   int
 }
@@ -21,9 +22,10 @@ func newTestExec(failAt ...int) *testExec {
 	return e
 }
 
-func (e *testExec) fn(ctx context.Context, sql string) error {
+func (e *testExec) fn(ctx context.Context, sql string, args ...any) error {
 	e.calls++
 	e.queries = append(e.queries, sql)
+	e.execArgs = append(e.execArgs, args)
 	if e.failAt[e.calls] {
 		return fmt.Errorf("simulated error on call %d: %s", e.calls, sql)
 	}
@@ -248,14 +250,18 @@ func TestRowLevel_DeprovisionTenant_Delete(t *testing.T) {
 	if len(exec.queries) != 3 {
 		t.Fatalf("expected 3 DELETE SQL calls, got %d: %v", len(exec.queries), exec.queries)
 	}
+	// tenantID must be a parameterized argument, not interpolated into the SQL string.
 	wantSQL := []string{
-		"DELETE FROM users WHERE org_id = 'acme'",
-		"DELETE FROM orders WHERE org_id = 'acme'",
-		"DELETE FROM items WHERE org_id = 'acme'",
+		"DELETE FROM users WHERE org_id = $1",
+		"DELETE FROM orders WHERE org_id = $1",
+		"DELETE FROM items WHERE org_id = $1",
 	}
 	for i, want := range wantSQL {
 		if exec.queries[i] != want {
 			t.Errorf("query[%d] = %q, want %q", i, exec.queries[i], want)
+		}
+		if len(exec.execArgs[i]) != 1 || exec.execArgs[i][0] != "acme" {
+			t.Errorf("query[%d] args = %v, want [acme]", i, exec.execArgs[i])
 		}
 	}
 }

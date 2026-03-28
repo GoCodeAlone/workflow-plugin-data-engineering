@@ -48,8 +48,10 @@ func (r *RowLevel) DeprovisionTenant(ctx context.Context, tenantID string, mode 
 	}
 	var errs []error
 	for _, table := range r.tables {
-		sql := fmt.Sprintf("DELETE FROM %s WHERE %s = '%s'", table, r.tenantColumn, tenantID)
-		if err := r.executor(ctx, sql); err != nil {
+		// tenantID is passed as a query parameter ($1) to prevent SQL injection.
+		// Table and column names are not user-controlled (set at strategy construction time).
+		sql := fmt.Sprintf("DELETE FROM %s WHERE %s = $1", table, r.tenantColumn)
+		if err := r.executor(ctx, sql, tenantID); err != nil {
 			errs = append(errs, fmt.Errorf("row_level: delete from %s: %w", table, err))
 		}
 	}

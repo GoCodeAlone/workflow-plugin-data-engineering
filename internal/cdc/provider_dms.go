@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	dms "github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
 	dmstypes "github.com/aws/aws-sdk-go-v2/service/databasemigrationservice/types"
 )
@@ -48,13 +49,42 @@ type dmsTask struct {
 	handler EventHandler
 }
 
-func newDMSProvider() *DMSProvider {
-	// In production, the AWS SDK client is loaded from environment credentials.
-	// DMSConfig (ARNs) must be injected via newDMSProviderWithConfig or module config.
+// newDMSProvider creates a DMSProvider by loading AWS credentials from the environment
+// and parsing DMS-specific config (region, ARNs, migration type) from cfg.Options.
+func newDMSProvider(cfg SourceConfig) (*DMSProvider, error) {
+	opts := cfg.Options
+
+	region, _ := opts["region"].(string)
+	dmsCfg := DMSConfig{
+		MigrationType: "cdc", // default
+	}
+	if v, ok := opts["source_endpoint_arn"].(string); ok {
+		dmsCfg.SourceEndpointARN = v
+	}
+	if v, ok := opts["target_endpoint_arn"].(string); ok {
+		dmsCfg.TargetEndpointARN = v
+	}
+	if v, ok := opts["replication_instance_arn"].(string); ok {
+		dmsCfg.ReplicationInstanceARN = v
+	}
+	if v, ok := opts["migration_type"].(string); ok && v != "" {
+		dmsCfg.MigrationType = v
+	}
+
+	loadOpts := []func(*awsconfig.LoadOptions) error{}
+	if region != "" {
+		loadOpts = append(loadOpts, awsconfig.WithRegion(region))
+	}
+	awsCfg, err := awsconfig.LoadDefaultConfig(context.Background(), loadOpts...)
+	if err != nil {
+		return nil, fmt.Errorf("dms CDC provider: load AWS config: %w", err)
+	}
+
 	return &DMSProvider{
 		tasks:  make(map[string]*dmsTask),
-		config: DMSConfig{MigrationType: "cdc"},
-	}
+		client: dms.NewFromConfig(awsCfg),
+		config: dmsCfg,
+	}, nil
 }
 
 // Connect creates an AWS DMS replication task and starts it.

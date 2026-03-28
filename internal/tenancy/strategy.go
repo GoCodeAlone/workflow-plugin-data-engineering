@@ -4,10 +4,11 @@ package tenancy
 import "context"
 
 // SQLExecutor runs a SQL statement against an admin database connection.
-type SQLExecutor func(ctx context.Context, sql string) error
+// args holds query parameters for parameterized statements (e.g. $1, $2).
+type SQLExecutor func(ctx context.Context, sql string, args ...any) error
 
 // noopSQLExecutor discards all SQL (used when no DB connection is configured).
-var noopSQLExecutor SQLExecutor = func(_ context.Context, _ string) error { return nil }
+var noopSQLExecutor SQLExecutor = func(_ context.Context, _ string, _ ...any) error { return nil }
 
 // TenancyStrategy defines how multi-tenant isolation is implemented.
 // Each strategy controls table resolution, connection routing, tenant filtering,
