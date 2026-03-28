@@ -6,7 +6,7 @@ import (
 )
 
 // CDCProvider defines the interface for Change Data Capture providers.
-// Implementations: BentoProvider, DebeziumProvider, DMSProvider.
+// Implementations: BentoProvider, DebeziumProvider, DMSProvider, MemoryProvider.
 type CDCProvider interface {
 	// Connect establishes a connection and starts the CDC stream.
 	Connect(ctx context.Context, config SourceConfig) error
@@ -18,15 +18,21 @@ type CDCProvider interface {
 	Snapshot(ctx context.Context, sourceID string, tables []string) error
 	// SchemaHistory returns the schema change history for a table.
 	SchemaHistory(ctx context.Context, sourceID string, table string) ([]SchemaVersion, error)
+	// RegisterEventHandler registers a callback for CDC events from a source stream.
+	RegisterEventHandler(sourceID string, h EventHandler) error
 }
+
+// EventHandler is called for each CDC event received from the provider.
+// Implementations must be goroutine-safe.
+type EventHandler func(sourceID string, event map[string]any) error
 
 // CDCStatus describes the current state of a CDC stream.
 type CDCStatus struct {
-	SourceID  string `json:"source_id"  yaml:"source_id"`
-	State     string `json:"state"      yaml:"state"`
-	Provider  string `json:"provider"   yaml:"provider"`
-	LastEvent string `json:"last_event" yaml:"last_event"`
-	Error     string `json:"error,omitempty" yaml:"error,omitempty"`
+	SourceID  string `json:"source_id"           yaml:"source_id"`
+	State     string `json:"state"               yaml:"state"`
+	Provider  string `json:"provider"            yaml:"provider"`
+	LastEvent string `json:"last_event"          yaml:"last_event"`
+	Error     string `json:"error,omitempty"     yaml:"error,omitempty"`
 }
 
 // SchemaVersion describes a schema change event for a table.
@@ -38,7 +44,6 @@ type SchemaVersion struct {
 }
 
 // newProvider constructs a CDCProvider by name.
-// Actual implementations are wired in Tasks 2-4.
 func newProvider(name string) (CDCProvider, error) {
 	switch name {
 	case "bento":
@@ -47,7 +52,9 @@ func newProvider(name string) (CDCProvider, error) {
 		return newDebeziumProvider(), nil
 	case "dms":
 		return newDMSProvider(), nil
+	case "memory":
+		return NewMemoryProvider(), nil
 	default:
-		return nil, fmt.Errorf("unknown CDC provider %q (valid: bento, debezium, dms)", name)
+		return nil, fmt.Errorf("unknown CDC provider %q (valid: bento, debezium, dms, memory)", name)
 	}
 }

@@ -19,11 +19,12 @@ type SourceModule struct {
 
 // SourceConfig holds configuration for the cdc.source module.
 type SourceConfig struct {
-	Provider   string   `json:"provider"    yaml:"provider"`
-	SourceID   string   `json:"source_id"   yaml:"source_id"`
-	SourceType string   `json:"source_type" yaml:"source_type"`
-	Connection string   `json:"connection"  yaml:"connection"`
-	Tables     []string `json:"tables"      yaml:"tables"`
+	Provider   string         `json:"provider"    yaml:"provider"`
+	SourceID   string         `json:"source_id"   yaml:"source_id"`
+	SourceType string         `json:"source_type" yaml:"source_type"`
+	Connection string         `json:"connection"  yaml:"connection"`
+	Tables     []string       `json:"tables"      yaml:"tables"`
+	Options    map[string]any `json:"options"     yaml:"options"`
 }
 
 // NewSourceModule creates a new CDC source module.
@@ -107,6 +108,9 @@ func parseSourceConfig(config map[string]any) (SourceConfig, error) {
 				cfg.Tables = append(cfg.Tables, s)
 			}
 		}
+	}
+	if v, ok := config["options"].(map[string]any); ok {
+		cfg.Options = v
 	}
 	if cfg.Provider == "" {
 		return cfg, fmt.Errorf("provider is required (bento, debezium, or dms)")

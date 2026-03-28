@@ -8,14 +8,17 @@ import (
 
 // DMSProvider implements CDCProvider using AWS Database Migration Service.
 // It creates and manages AWS DMS replication tasks via the AWS SDK.
+// Full AWS SDK implementation is in Task 4.
 type DMSProvider struct {
 	mu    sync.RWMutex
 	tasks map[string]*dmsTask
 }
 
 type dmsTask struct {
-	config SourceConfig
-	state  string
+	mu      sync.RWMutex
+	config  SourceConfig
+	state   string
+	handler EventHandler
 }
 
 func newDMSProvider() *DMSProvider {
@@ -35,15 +38,13 @@ func (p *DMSProvider) Connect(ctx context.Context, config SourceConfig) error {
 	return nil
 }
 
-// Disconnect stops and deletes the AWS DMS replication task.
+// Disconnect stops and removes the AWS DMS replication task.
 func (p *DMSProvider) Disconnect(ctx context.Context, sourceID string) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	task, exists := p.tasks[sourceID]
-	if !exists {
+	if _, exists := p.tasks[sourceID]; !exists {
 		return fmt.Errorf("dms CDC provider: task %q not found", sourceID)
 	}
-	task.state = "stopped"
 	delete(p.tasks, sourceID)
 	return nil
 }
@@ -51,11 +52,14 @@ func (p *DMSProvider) Disconnect(ctx context.Context, sourceID string) error {
 // Status returns the current status of an AWS DMS replication task.
 func (p *DMSProvider) Status(ctx context.Context, sourceID string) (*CDCStatus, error) {
 	p.mu.RLock()
-	defer p.mu.RUnlock()
 	task, exists := p.tasks[sourceID]
+	p.mu.RUnlock()
+
 	if !exists {
 		return &CDCStatus{SourceID: sourceID, State: "not_found", Provider: "dms"}, nil
 	}
+	task.mu.RLock()
+	defer task.mu.RUnlock()
 	return &CDCStatus{
 		SourceID: sourceID,
 		State:    task.state,
@@ -66,16 +70,36 @@ func (p *DMSProvider) Status(ctx context.Context, sourceID string) (*CDCStatus, 
 // Snapshot triggers a full-load snapshot via AWS DMS reload-target operation.
 func (p *DMSProvider) Snapshot(ctx context.Context, sourceID string, tables []string) error {
 	p.mu.RLock()
-	defer p.mu.RUnlock()
 	_, exists := p.tasks[sourceID]
+	p.mu.RUnlock()
 	if !exists {
 		return fmt.Errorf("dms CDC provider: task %q not found", sourceID)
 	}
-	// Full implementation in Task 4: AWS DMS StartReplicationTask with reload-target
+	// Full implementation in Task 4: AWS DMS StartReplicationTask with reload-target.
 	return nil
 }
 
-// SchemaHistory returns schema change history (not natively supported by DMS).
+// SchemaHistory is not natively supported by AWS DMS.
 func (p *DMSProvider) SchemaHistory(ctx context.Context, sourceID string, table string) ([]SchemaVersion, error) {
+	p.mu.RLock()
+	_, exists := p.tasks[sourceID]
+	p.mu.RUnlock()
+	if !exists {
+		return nil, fmt.Errorf("dms CDC provider: task %q not found", sourceID)
+	}
 	return []SchemaVersion{}, nil
+}
+
+// RegisterEventHandler registers a callback for events from an AWS DMS task.
+func (p *DMSProvider) RegisterEventHandler(sourceID string, h EventHandler) error {
+	p.mu.RLock()
+	task, exists := p.tasks[sourceID]
+	p.mu.RUnlock()
+	if !exists {
+		return fmt.Errorf("dms CDC provider: task %q not found", sourceID)
+	}
+	task.mu.Lock()
+	task.handler = h
+	task.mu.Unlock()
+	return nil
 }
