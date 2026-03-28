@@ -127,8 +127,10 @@ func (p *BentoProvider) Snapshot(ctx context.Context, sourceID string, tables []
 		return fmt.Errorf("bento CDC provider %q: snapshot build config: %w", sourceID, err)
 	}
 
+	bs.mu.Lock()
 	bs.done = make(chan struct{})
 	bs.state = "starting"
+	bs.mu.Unlock()
 
 	if err := bs.start(ctx, inputYAML); err != nil {
 		return fmt.Errorf("bento CDC provider %q: snapshot restart: %w", sourceID, err)

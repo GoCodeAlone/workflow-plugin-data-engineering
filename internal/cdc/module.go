@@ -58,10 +58,10 @@ func (m *SourceModule) Init() error {
 }
 
 // Start initializes the CDC provider connection and registers the module in the global registry.
+// The module mutex is NOT held during provider.Connect to avoid blocking Provider() and Config()
+// accessors during potentially long network round-trips. m.provider and m.config are immutable
+// after NewSourceModule, so no lock is needed to read them.
 func (m *SourceModule) Start(ctx context.Context) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	if err := m.provider.Connect(ctx, m.config); err != nil {
 		return err
 	}
@@ -77,10 +77,8 @@ func (m *SourceModule) Start(ctx context.Context) error {
 }
 
 // Stop shuts down the CDC provider connection and deregisters from the global registry.
+// m.provider and m.config are immutable after NewSourceModule; no lock needed.
 func (m *SourceModule) Stop(ctx context.Context) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	UnregisterSource(m.config.SourceID)
 	return m.provider.Disconnect(ctx, m.config.SourceID)
 }
