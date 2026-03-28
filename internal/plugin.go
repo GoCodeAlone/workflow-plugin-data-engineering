@@ -123,16 +123,6 @@ func (p *dataEngineeringPlugin) ModuleSchemas() []sdk.ModuleSchemaData {
 				{Name: "tables", Type: "string", Description: "Comma-separated list of tables to capture", Required: false},
 			},
 		},
-		{
-			Type:        "data.tenancy",
-			Label:       "Data Tenancy",
-			Category:    "Data Engineering",
-			Description: "Multi-tenant data isolation and provisioning",
-			ConfigFields: []sdk.ConfigField{
-				{Name: "strategy", Type: "string", Description: "Isolation strategy: schema or database", Required: true, Options: []string{"schema", "database"}},
-				{Name: "connection", Type: "string", Description: "Admin database connection string", Required: true},
-				{Name: "migration_dir", Type: "string", Description: "Path to SQL migration files", Required: false},
-			},
-		},
+		tenancy.TenancyModuleSchema(),
 	}
 }
