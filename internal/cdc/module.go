@@ -57,17 +57,31 @@ func (m *SourceModule) Init() error {
 	return nil
 }
 
-// Start initializes the CDC provider connection.
+// Start initializes the CDC provider connection and registers the module in the global registry.
 func (m *SourceModule) Start(ctx context.Context) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return m.provider.Connect(ctx, m.config)
+
+	if err := m.provider.Connect(ctx, m.config); err != nil {
+		return err
+	}
+
+	// Register so steps and triggers can look up this source by ID.
+	if err := RegisterSource(m.config.SourceID, m.provider); err != nil {
+		// Unwind the connection if registration fails.
+		_ = m.provider.Disconnect(ctx, m.config.SourceID)
+		return fmt.Errorf("cdc.source %q: register: %w", m.name, err)
+	}
+
+	return nil
 }
 
-// Stop shuts down the CDC provider connection.
+// Stop shuts down the CDC provider connection and deregisters from the global registry.
 func (m *SourceModule) Stop(ctx context.Context) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
+	UnregisterSource(m.config.SourceID)
 	return m.provider.Disconnect(ctx, m.config.SourceID)
 }
 
