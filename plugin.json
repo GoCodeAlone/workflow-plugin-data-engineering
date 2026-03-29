@@ -1,6 +1,6 @@
 {
     "name": "workflow-plugin-data-engineering",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "dependencies": [
         {"name": "bento", "minVersion": "1.0.0"}
     ],
@@ -81,7 +81,23 @@
             "step.migrate_apply",
             "step.migrate_run",
             "step.migrate_rollback",
-            "step.migrate_status"
+            "step.migrate_status",
+            "step.migrate_expand",
+            "step.migrate_contract",
+            "step.migrate_expand_status",
+            "step.schema_evolve_pipeline",
+            "step.schema_evolve_verify",
+            "step.catalog_lineage",
+            "step.catalog_lineage_query",
+            "step.ts_archive",
+            "step.ts_tier_status",
+            "step.ts_clickhouse_view",
+            "step.graph_extract_entities_llm",
+            "step.tenant_evaluate_promotion",
+            "step.tenant_promote",
+            "step.tenant_demote",
+            "step.cdc_backpressure",
+            "step.cdc_monitor"
         ],
         "triggerTypes": [
             "trigger.cdc"

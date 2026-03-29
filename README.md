@@ -355,6 +355,68 @@ modules:
 | `step.migrate_rollback` | `module`, `steps` | `{status, fromVersion, toVersion}` |
 | `step.migrate_status` | `module` | `{version, pending, applied}` |
 
+### Expand-Contract Migration Steps
+
+Zero-downtime DDL via pgroll-style dual-version column serving.
+
+| Step | Config | Output |
+|------|--------|--------|
+| `step.migrate_expand` | `table`, `changes` (see below), `_executor` | `{status, table, triggerNames, newColumns}` |
+| `step.migrate_contract` | `table`, `changes`, `_executor` | `{status, droppedColumns, droppedTriggers}` |
+| `step.migrate_expand_status` | `table`, `triggerName`, `_executor` | `{expanded, triggerActive, safeToContract}` |
+
+**Change types:** `rename_column` (fields: `oldColumn`, `newColumn`, `newType`, `transform`), `add_column` (fields: `newColumn`, `newType`), `change_type` (fields: `oldColumn`, `newColumn`, `newType`, `transform`).
+
+### Schema Evolution Pipeline Steps
+
+Coordinated schema changes across CDC → Kafka schema registry → Iceberg lakehouse → source DB.
+
+| Step | Config | Output |
+|------|--------|--------|
+| `step.schema_evolve_pipeline` | `table`, `namespace`, `change`, `source_db`, `cdc_source`, `schema_registry`, `lakehouse_catalog` | `{plan, safe, executed, rollbackAvailable}` |
+| `step.schema_evolve_verify` | `table`, `subject`, `source_db`, `schema_registry` | `{consistent, layers: [{name, schemaVersion, fields}], diffs}` |
+
+### Catalog Lineage Steps
+
+| Step | Config | Output |
+|------|--------|--------|
+| `step.catalog_lineage` | `catalog`, `pipeline`, `upstream` (list of `{dataset, platform}`), `downstream` | `{status: "recorded", upstreamCount, downstreamCount}` |
+| `step.catalog_lineage_query` | `catalog`, `dataset`, `direction` (upstream\|downstream\|both), `depth` | `{nodes: [...], edges: [...]}` |
+
+### Time-Series Tier Management Steps
+
+| Step | Config | Output |
+|------|--------|--------|
+| `step.ts_archive` | `module`, `olderThan` (e.g. `30d`), `destination`, `format` (parquet\|csv), `deleteAfterArchive` | `{status, rowsArchived, bytesWritten, destination, deletedFromHot}` |
+| `step.ts_tier_status` | `module`, `measurement` | `{hotRows, coldFiles, totalBytes, hotOldestTimestamp}` |
+
+### ClickHouse Materialized View Steps
+
+| Step | Config | Output |
+|------|--------|--------|
+| `step.ts_clickhouse_view` | `module`, `viewName`, `action` (create\|drop\|status), `query`, `engine`, `orderBy`, `partitionBy` | `{status/isActive, viewName, engine}` |
+
+### Graph LLM Extraction Steps
+
+| Step | Config | Output |
+|------|--------|--------|
+| `step.graph_extract_entities_llm` | `text`, `provider` (claude\|openai), `apiKey`, `model`, `types` | `{entities: [...], count, provider, fallback}` |
+
+### Tenant Tier Promotion Steps
+
+| Step | Config | Output |
+|------|--------|--------|
+| `step.tenant_evaluate_promotion` | `tenant_id`, `current_tier`, `metrics`, `thresholds` | `{tenant_id, current_tier, recommended_tier, should_promote, reason, metrics}` |
+| `step.tenant_promote` | `tenant_id`, `target_strategy`, `tables`, `schema_prefix`, `delete_from_shared` | `{status: "promoted", tenant_id, from_tier, to_tier, rows_migrated, tables}` |
+| `step.tenant_demote` | `tenant_id`, `from_tier`, `tables`, `schema_prefix` | `{status: "demoted", tenant_id, from_tier, to_tier, rows_migrated}` |
+
+### CDC Backpressure Steps
+
+| Step | Config | Output |
+|------|--------|--------|
+| `step.cdc_backpressure` | `source_id`, `action` (check\|throttle\|resume), `thresholds` | `{source_id, lag_bytes, lag_seconds, status, thresholds}` |
+| `step.cdc_monitor` | `source_id`, `thresholds` | `{source_id, lag_bytes, lag_seconds, status, alerts_sent, auto_throttled}` |
+
 ## Trigger Types
 
 ### `trigger.cdc`
@@ -1010,20 +1072,18 @@ pipelines:
           limit: 20
 ```
 
-## Known Gaps and Roadmap
+## Changelog
 
-Based on analysis of 2026 production use cases, these gaps are identified for future releases:
+### v0.3.0
 
-| Gap | Description | Priority |
-|-----|-------------|----------|
-| End-to-end schema evolution | Coordinated schema changes across CDC→Kafka schema→Iceberg (no tool does this today) | High |
-| Expand-contract migrations | pgroll-style dual-version serving for zero-downtime DDL | High |
-| Lineage tracking step | `step.catalog_lineage` to record upstream→downstream in DataHub/OpenMetadata | Medium |
-| Hot/cold tier management | `step.ts_archive` to move aged data from TS DB to Parquet/S3 | Medium |
-| LLM-powered entity extraction | Integrate with Claude/OpenAI for knowledge graph extraction beyond regex | Medium |
-| ClickHouse materialized views | `step.ts_clickhouse_view` for MergeTree materialized view management | Low |
-| Dynamic tenant tier promotion | Auto-promote tenants from shared→dedicated based on usage metrics | Low |
-| CDC backpressure monitoring | WAL lag alerts and automatic throttling | Low |
+- **End-to-end schema evolution** (`step.schema_evolve_pipeline`, `step.schema_evolve_verify`): coordinated DDL across CDC, Kafka schema registry, Iceberg lakehouse, and source DB in a single orchestrated plan
+- **Expand-contract migrations** (`step.migrate_expand`, `step.migrate_contract`, `step.migrate_expand_status`): pgroll-style dual-version column serving with PostgreSQL trigger sync for zero-downtime DDL
+- **Catalog lineage** (`step.catalog_lineage`, `step.catalog_lineage_query`): record and query upstream/downstream dataset lineage in DataHub and OpenMetadata
+- **Hot/cold tier management** (`step.ts_archive`, `step.ts_tier_status`): archive aged time-series data to Parquet/S3, with delete-after option
+- **LLM entity extraction** (`step.graph_extract_entities_llm`): Claude/OpenAI-powered knowledge graph entity extraction with regex fallback
+- **ClickHouse materialized views** (`step.ts_clickhouse_view`): create, drop, and inspect ClickHouse MergeTree materialized views
+- **Tenant tier promotion** (`step.tenant_evaluate_promotion`, `step.tenant_promote`, `step.tenant_demote`): auto-evaluate and execute tier changes based on row count, query rate, and storage metrics
+- **CDC backpressure** (`step.cdc_backpressure`, `step.cdc_monitor`): WAL lag monitoring with healthy/warning/critical thresholds and auto-throttle on critical lag
 
 ## Build
 
