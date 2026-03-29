@@ -51,6 +51,12 @@ type OMLineageResult struct {
 	Downstream []OMTable `json:"downstream,omitempty"`
 }
 
+// EntityRef is a lineage entity reference (FQN + type).
+type EntityRef struct {
+	FQN  string `json:"fullyQualifiedName"`
+	Type string `json:"type"`
+}
+
 // OpenMetadataClient is the interface for OpenMetadata REST API operations.
 type OpenMetadataClient interface {
 	GetTable(ctx context.Context, fqn string) (*OMTable, error)
@@ -58,6 +64,7 @@ type OpenMetadataClient interface {
 	CreateOrUpdateTable(ctx context.Context, table OMTable) error
 	AddTag(ctx context.Context, fqn, tag string) error
 	SetOwner(ctx context.Context, fqn, owner string) error
+	AddLineageEdge(ctx context.Context, from, to EntityRef) error
 	GetLineage(ctx context.Context, fqn string) (*OMLineageResult, error)
 }
 
@@ -129,6 +136,25 @@ func (c *omHTTPClient) SetOwner(ctx context.Context, fqn, owner string) error {
 	table.Owner = &OMEntityRef{Name: owner, Type: "user"}
 	if err := c.client.DoJSON(ctx, http.MethodPut, "/api/v1/tables", table, nil); err != nil {
 		return fmt.Errorf("openmetadata: SetOwner: %w", err)
+	}
+	return nil
+}
+
+func (c *omHTTPClient) AddLineageEdge(ctx context.Context, from, to EntityRef) error {
+	body := map[string]any{
+		"edge": map[string]any{
+			"fromEntity": map[string]any{
+				"fullyQualifiedName": from.FQN,
+				"type":               from.Type,
+			},
+			"toEntity": map[string]any{
+				"fullyQualifiedName": to.FQN,
+				"type":               to.Type,
+			},
+		},
+	}
+	if err := c.client.DoJSON(ctx, http.MethodPut, "/api/v1/lineage", body, nil); err != nil {
+		return fmt.Errorf("openmetadata: AddLineageEdge: %w", err)
 	}
 	return nil
 }

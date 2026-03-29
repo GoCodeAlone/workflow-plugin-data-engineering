@@ -77,6 +77,7 @@ func (m *mockDHClient) EmitMetadata(_ context.Context, _ []MetadataProposal) err
 func (m *mockDHClient) AddTag(_ context.Context, _, _ string) error { return nil }
 func (m *mockDHClient) AddGlossaryTerm(_ context.Context, _, _ string) error { return nil }
 func (m *mockDHClient) SetOwner(_ context.Context, _, _, _ string) error { return nil }
+func (m *mockDHClient) SetLineage(_ context.Context, _, _ string) error { return nil }
 func (m *mockDHClient) GetLineage(_ context.Context, urn, direction string) (*LineageResult, error) {
 	return &LineageResult{URN: urn, Direction: direction}, nil
 }
@@ -178,9 +179,10 @@ func (m *mockOMClient) GetTable(_ context.Context, _ string) (*OMTable, error) {
 func (m *mockOMClient) SearchTables(_ context.Context, _ string, _ int) (*OMSearchResult, error) {
 	return &OMSearchResult{}, nil
 }
-func (m *mockOMClient) CreateOrUpdateTable(_ context.Context, _ OMTable) error { return nil }
-func (m *mockOMClient) AddTag(_ context.Context, _, _ string) error            { return nil }
-func (m *mockOMClient) SetOwner(_ context.Context, _, _ string) error          { return nil }
+func (m *mockOMClient) CreateOrUpdateTable(_ context.Context, _ OMTable) error     { return nil }
+func (m *mockOMClient) AddTag(_ context.Context, _, _ string) error                { return nil }
+func (m *mockOMClient) SetOwner(_ context.Context, _, _ string) error              { return nil }
+func (m *mockOMClient) AddLineageEdge(_ context.Context, _, _ EntityRef) error     { return nil }
 func (m *mockOMClient) GetLineage(_ context.Context, _ string) (*OMLineageResult, error) {
 	return &OMLineageResult{}, nil
 }

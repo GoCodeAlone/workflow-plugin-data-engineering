@@ -62,6 +62,7 @@ type DataHubClient interface {
 	AddTag(ctx context.Context, urn, tag string) error
 	AddGlossaryTerm(ctx context.Context, urn, term string) error
 	SetOwner(ctx context.Context, urn, ownerUrn, ownerType string) error
+	SetLineage(ctx context.Context, upstream, downstream string) error
 	GetLineage(ctx context.Context, urn, direction string) (*LineageResult, error)
 }
 
@@ -141,6 +142,13 @@ func (c *dhHTTPClient) AddGlossaryTerm(ctx context.Context, urn, term string) er
 
 func (c *dhHTTPClient) SetOwner(ctx context.Context, urn, ownerUrn, ownerType string) error {
 	return c.client.DoJSON(ctx, http.MethodPost, "/entities?action=setOwner", map[string]any{"urn": urn, "ownerUrn": ownerUrn, "ownerType": ownerType}, nil)
+}
+
+func (c *dhHTTPClient) SetLineage(ctx context.Context, upstream, downstream string) error {
+	return c.client.DoJSON(ctx, http.MethodPost, "/relationships?action=setLineage", map[string]any{
+		"upstreamUrns":   []string{upstream},
+		"downstreamUrns": []string{downstream},
+	}, nil)
 }
 
 func (c *dhHTTPClient) GetLineage(ctx context.Context, urn, direction string) (*LineageResult, error) {
