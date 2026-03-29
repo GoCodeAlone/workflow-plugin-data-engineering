@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/cdc"
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/lakehouse"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/tenancy"
 	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
 )
@@ -35,6 +36,8 @@ func (p *dataEngineeringPlugin) ModuleTypes() []string {
 	return []string{
 		"cdc.source",
 		"data.tenancy",
+		"catalog.iceberg",
+		"lakehouse.table",
 	}
 }
 
@@ -45,6 +48,10 @@ func (p *dataEngineeringPlugin) CreateModule(typeName, name string, config map[s
 		return cdc.NewSourceModule(name, config)
 	case "data.tenancy":
 		return tenancy.NewTenancyModule(name, config)
+	case "catalog.iceberg":
+		return lakehouse.NewCatalogModule(name, config)
+	case "lakehouse.table":
+		return lakehouse.NewTableModule(name, config)
 	default:
 		return nil, fmt.Errorf("data-engineering plugin: unknown module type %q", typeName)
 	}
@@ -63,6 +70,14 @@ func (p *dataEngineeringPlugin) StepTypes() []string {
 		"step.tenant_provision",
 		"step.tenant_deprovision",
 		"step.tenant_migrate",
+		// Lakehouse steps
+		"step.lakehouse_create_table",
+		"step.lakehouse_evolve_schema",
+		"step.lakehouse_write",
+		"step.lakehouse_compact",
+		"step.lakehouse_snapshot",
+		"step.lakehouse_query",
+		"step.lakehouse_expire_snapshots",
 	}
 }
 
@@ -85,6 +100,20 @@ func (p *dataEngineeringPlugin) CreateStep(typeName, name string, config map[str
 		return tenancy.NewDeprovisionStep(name, config)
 	case "step.tenant_migrate":
 		return tenancy.NewMigrateStep(name, config)
+	case "step.lakehouse_create_table":
+		return lakehouse.NewCreateTableStep(name, config)
+	case "step.lakehouse_evolve_schema":
+		return lakehouse.NewEvolveSchemaStep(name, config)
+	case "step.lakehouse_write":
+		return lakehouse.NewWriteStep(name, config)
+	case "step.lakehouse_compact":
+		return lakehouse.NewCompactStep(name, config)
+	case "step.lakehouse_snapshot":
+		return lakehouse.NewSnapshotStep(name, config)
+	case "step.lakehouse_query":
+		return lakehouse.NewQueryStep(name, config)
+	case "step.lakehouse_expire_snapshots":
+		return lakehouse.NewExpireSnapshotsStep(name, config)
 	default:
 		return nil, fmt.Errorf("data-engineering plugin: unknown step type %q", typeName)
 	}
@@ -109,7 +138,7 @@ func (p *dataEngineeringPlugin) CreateTrigger(typeName string, config map[string
 
 // ModuleSchemas returns schema metadata for all module types.
 func (p *dataEngineeringPlugin) ModuleSchemas() []sdk.ModuleSchemaData {
-	return []sdk.ModuleSchemaData{
+	schemas := []sdk.ModuleSchemaData{
 		{
 			Type:        "cdc.source",
 			Label:       "CDC Source",
@@ -125,4 +154,6 @@ func (p *dataEngineeringPlugin) ModuleSchemas() []sdk.ModuleSchemaData {
 		},
 		tenancy.TenancyModuleSchema(),
 	}
+	schemas = append(schemas, lakehouse.LakehouseModuleSchemas()...)
+	return schemas
 }

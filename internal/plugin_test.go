@@ -47,7 +47,7 @@ func execStep(ctx context.Context, step sdk.StepInstance, config map[string]any)
 func TestPlugin_AllModuleTypes(t *testing.T) {
 	p := newPlugin(t)
 	types := p.ModuleTypes()
-	want := map[string]bool{"cdc.source": false, "data.tenancy": false}
+	want := map[string]bool{"cdc.source": false, "data.tenancy": false, "catalog.iceberg": false, "lakehouse.table": false}
 	for _, typ := range types {
 		want[typ] = true
 	}
@@ -62,14 +62,21 @@ func TestPlugin_AllStepTypes(t *testing.T) {
 	p := newPlugin(t)
 	types := p.StepTypes()
 	want := map[string]bool{
-		"step.cdc_start":         false,
-		"step.cdc_stop":          false,
-		"step.cdc_status":        false,
-		"step.cdc_snapshot":      false,
-		"step.cdc_schema_history": false,
-		"step.tenant_provision":   false,
-		"step.tenant_deprovision": false,
-		"step.tenant_migrate":     false,
+		"step.cdc_start":                  false,
+		"step.cdc_stop":                   false,
+		"step.cdc_status":                 false,
+		"step.cdc_snapshot":               false,
+		"step.cdc_schema_history":         false,
+		"step.tenant_provision":           false,
+		"step.tenant_deprovision":         false,
+		"step.tenant_migrate":             false,
+		"step.lakehouse_create_table":     false,
+		"step.lakehouse_evolve_schema":    false,
+		"step.lakehouse_write":            false,
+		"step.lakehouse_compact":          false,
+		"step.lakehouse_snapshot":         false,
+		"step.lakehouse_query":            false,
+		"step.lakehouse_expire_snapshots": false,
 	}
 	for _, typ := range types {
 		want[typ] = true
@@ -79,22 +86,22 @@ func TestPlugin_AllStepTypes(t *testing.T) {
 			t.Errorf("missing step type %q in StepTypes()", typ)
 		}
 	}
-	if len(types) != 8 {
-		t.Errorf("expected 8 step types, got %d", len(types))
+	if len(types) != 15 {
+		t.Errorf("expected 15 step types, got %d", len(types))
 	}
 }
 
 func TestPlugin_AllSchemas(t *testing.T) {
 	p := newPlugin(t)
 	schemas := p.ModuleSchemas()
-	if len(schemas) != 2 {
-		t.Fatalf("expected 2 schemas, got %d", len(schemas))
+	if len(schemas) != 4 {
+		t.Fatalf("expected 4 schemas, got %d", len(schemas))
 	}
 	byType := make(map[string]sdk.ModuleSchemaData)
 	for _, s := range schemas {
 		byType[s.Type] = s
 	}
-	for _, typ := range []string{"cdc.source", "data.tenancy"} {
+	for _, typ := range []string{"cdc.source", "data.tenancy", "catalog.iceberg", "lakehouse.table"} {
 		s, ok := byType[typ]
 		if !ok {
 			t.Errorf("missing schema for type %q", typ)
