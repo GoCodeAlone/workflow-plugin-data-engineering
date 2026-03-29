@@ -53,6 +53,9 @@ func (p *dataEngineeringPlugin) ModuleTypes() []string {
 		"catalog.schema_registry",
 		// Graph (Phase 3)
 		"graph.neo4j",
+		// Data Catalog (Phase 3)
+		"catalog.datahub",
+		"catalog.openmetadata",
 	}
 }
 
@@ -81,6 +84,10 @@ func (p *dataEngineeringPlugin) CreateModule(typeName, name string, config map[s
 		return catalog.NewSchemaRegistryModule(name, config)
 	case "graph.neo4j":
 		return graph.NewNeo4jModule(name, config)
+	case "catalog.datahub":
+		return catalog.NewDataHubModule(name, config)
+	case "catalog.openmetadata":
+		return catalog.NewOpenMetadataModule(name, config)
 	default:
 		return nil, fmt.Errorf("data-engineering plugin: unknown module type %q", typeName)
 	}
@@ -128,6 +135,10 @@ func (p *dataEngineeringPlugin) StepTypes() []string {
 		"step.graph_import",
 		"step.graph_extract_entities",
 		"step.graph_link",
+		// Catalog steps (Phase 3)
+		"step.catalog_register",
+		"step.catalog_search",
+		"step.contract_validate",
 	}
 }
 
@@ -198,6 +209,12 @@ func (p *dataEngineeringPlugin) CreateStep(typeName, name string, config map[str
 		return graph.NewGraphExtractEntitiesStep(name, config)
 	case "step.graph_link":
 		return graph.NewGraphLinkStep(name, config)
+	case "step.catalog_register":
+		return catalog.NewCatalogRegisterStep(name, config)
+	case "step.catalog_search":
+		return catalog.NewCatalogSearchStep(name, config)
+	case "step.contract_validate":
+		return catalog.NewContractValidateStep(name, config)
 	default:
 		return nil, fmt.Errorf("data-engineering plugin: unknown step type %q", typeName)
 	}
@@ -241,6 +258,7 @@ func (p *dataEngineeringPlugin) ModuleSchemas() []sdk.ModuleSchemaData {
 	schemas = append(schemas, lakehouse.LakehouseModuleSchemas()...)
 	schemas = append(schemas, phase2ModuleSchemas()...)
 	schemas = append(schemas, graph.GraphModuleSchemas()...)
+	schemas = append(schemas, phase3CatalogSchemas()...)
 	return schemas
 }
 
@@ -309,6 +327,33 @@ func phase2ModuleSchemas() []sdk.ModuleSchemaData {
 				{Name: "endpoint", Type: "string", Description: "Schema Registry URL", Required: true},
 				{Name: "username", Type: "string", Description: "Basic auth username", Required: false},
 				{Name: "password", Type: "string", Description: "Basic auth password", Required: false},
+			},
+		},
+	}
+}
+
+func phase3CatalogSchemas() []sdk.ModuleSchemaData {
+	return []sdk.ModuleSchemaData{
+		{
+			Type:        "catalog.datahub",
+			Label:       "DataHub",
+			Category:    "Data Engineering",
+			Description: "DataHub metadata catalog module",
+			ConfigFields: []sdk.ConfigField{
+				{Name: "endpoint", Type: "string", Description: "DataHub GMS endpoint URL", Required: true},
+				{Name: "token", Type: "string", Description: "DataHub access token", Required: false},
+				{Name: "timeout", Type: "string", Description: "HTTP request timeout (e.g. 30s)", Required: false},
+			},
+		},
+		{
+			Type:        "catalog.openmetadata",
+			Label:       "OpenMetadata",
+			Category:    "Data Engineering",
+			Description: "OpenMetadata catalog module",
+			ConfigFields: []sdk.ConfigField{
+				{Name: "endpoint", Type: "string", Description: "OpenMetadata server URL", Required: true},
+				{Name: "token", Type: "string", Description: "OpenMetadata JWT token", Required: false},
+				{Name: "timeout", Type: "string", Description: "HTTP request timeout (e.g. 30s)", Required: false},
 			},
 		},
 	}

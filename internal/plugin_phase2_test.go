@@ -57,8 +57,8 @@ func TestPlugin_Phase2_AllModuleTypes(t *testing.T) {
 			t.Errorf("missing module type %q", req)
 		}
 	}
-	if len(types) != 11 {
-		t.Errorf("expected 11 module types, got %d: %v", len(types), types)
+	if len(types) != 13 {
+		t.Errorf("expected 13 module types, got %d: %v", len(types), types)
 	}
 }
 
@@ -86,8 +86,8 @@ func TestPlugin_Phase2_AllStepTypes(t *testing.T) {
 			t.Errorf("missing step type %q", req)
 		}
 	}
-	if len(types) != 32 {
-		t.Errorf("expected 32 step types, got %d", len(types))
+	if len(types) != 35 {
+		t.Errorf("expected 35 step types, got %d", len(types))
 	}
 }
 
