@@ -36,6 +36,16 @@ type TimescaleModule struct {
 	db     *sql.DB
 }
 
+// NewTimescaleModuleFromDB creates a TimescaleModule backed by an existing *sql.DB.
+// Intended for integration tests where a real database is not available.
+func NewTimescaleModuleFromDB(name string, db *sql.DB) *TimescaleModule {
+	return &TimescaleModule{
+		name:   name,
+		config: TimescaleConfig{Connection: "injected"},
+		db:     db,
+	}
+}
+
 // NewTimescaleModule creates a new timeseries.timescaledb module instance.
 func NewTimescaleModule(name string, config map[string]any) (sdk.ModuleInstance, error) {
 	cfg, err := parseTimescaleConfig(config)

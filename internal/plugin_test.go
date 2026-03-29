@@ -47,7 +47,13 @@ func execStep(ctx context.Context, step sdk.StepInstance, config map[string]any)
 func TestPlugin_AllModuleTypes(t *testing.T) {
 	p := newPlugin(t)
 	types := p.ModuleTypes()
-	want := map[string]bool{"cdc.source": false, "data.tenancy": false, "catalog.iceberg": false, "lakehouse.table": false}
+	want := map[string]bool{
+		"cdc.source": false, "data.tenancy": false,
+		"catalog.iceberg": false, "lakehouse.table": false,
+		"timeseries.influxdb": false, "timeseries.timescaledb": false,
+		"timeseries.clickhouse": false, "timeseries.questdb": false,
+		"timeseries.druid": false, "catalog.schema_registry": false,
+	}
 	for _, typ := range types {
 		want[typ] = true
 	}
@@ -77,6 +83,19 @@ func TestPlugin_AllStepTypes(t *testing.T) {
 		"step.lakehouse_snapshot":         false,
 		"step.lakehouse_query":            false,
 		"step.lakehouse_expire_snapshots": false,
+		// Time-series steps
+		"step.ts_write":             false,
+		"step.ts_write_batch":       false,
+		"step.ts_query":             false,
+		"step.ts_downsample":        false,
+		"step.ts_retention":         false,
+		"step.ts_continuous_query":  false,
+		"step.ts_druid_ingest":      false,
+		"step.ts_druid_query":       false,
+		"step.ts_druid_datasource":  false,
+		"step.ts_druid_compact":     false,
+		"step.schema_register":      false,
+		"step.schema_validate":      false,
 	}
 	for _, typ := range types {
 		want[typ] = true
@@ -86,22 +105,26 @@ func TestPlugin_AllStepTypes(t *testing.T) {
 			t.Errorf("missing step type %q in StepTypes()", typ)
 		}
 	}
-	if len(types) != 15 {
-		t.Errorf("expected 15 step types, got %d", len(types))
+	if len(types) != 27 {
+		t.Errorf("expected 27 step types, got %d", len(types))
 	}
 }
 
 func TestPlugin_AllSchemas(t *testing.T) {
 	p := newPlugin(t)
 	schemas := p.ModuleSchemas()
-	if len(schemas) != 4 {
-		t.Fatalf("expected 4 schemas, got %d", len(schemas))
+	if len(schemas) != 10 {
+		t.Fatalf("expected 10 schemas, got %d", len(schemas))
 	}
 	byType := make(map[string]sdk.ModuleSchemaData)
 	for _, s := range schemas {
 		byType[s.Type] = s
 	}
-	for _, typ := range []string{"cdc.source", "data.tenancy", "catalog.iceberg", "lakehouse.table"} {
+	for _, typ := range []string{
+		"cdc.source", "data.tenancy", "catalog.iceberg", "lakehouse.table",
+		"timeseries.influxdb", "timeseries.timescaledb", "timeseries.clickhouse",
+		"timeseries.questdb", "timeseries.druid", "catalog.schema_registry",
+	} {
 		s, ok := byType[typ]
 		if !ok {
 			t.Errorf("missing schema for type %q", typ)
