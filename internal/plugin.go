@@ -8,6 +8,7 @@ import (
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/cdc"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/graph"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/lakehouse"
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/quality"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/tenancy"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/timeseries"
 	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
@@ -56,6 +57,8 @@ func (p *dataEngineeringPlugin) ModuleTypes() []string {
 		// Data Catalog (Phase 3)
 		"catalog.datahub",
 		"catalog.openmetadata",
+		// Data Quality (Phase 3)
+		"quality.checks",
 	}
 }
 
@@ -88,6 +91,8 @@ func (p *dataEngineeringPlugin) CreateModule(typeName, name string, config map[s
 		return catalog.NewDataHubModule(name, config)
 	case "catalog.openmetadata":
 		return catalog.NewOpenMetadataModule(name, config)
+	case "quality.checks":
+		return quality.NewChecksModule(name, config)
 	default:
 		return nil, fmt.Errorf("data-engineering plugin: unknown module type %q", typeName)
 	}
@@ -139,6 +144,15 @@ func (p *dataEngineeringPlugin) StepTypes() []string {
 		"step.catalog_register",
 		"step.catalog_search",
 		"step.contract_validate",
+		// Data Quality steps (Phase 3)
+		"step.quality_check",
+		"step.quality_schema_validate",
+		"step.quality_profile",
+		"step.quality_compare",
+		"step.quality_anomaly",
+		"step.quality_dbt_test",
+		"step.quality_soda_check",
+		"step.quality_ge_validate",
 	}
 }
 
@@ -215,6 +229,22 @@ func (p *dataEngineeringPlugin) CreateStep(typeName, name string, config map[str
 		return catalog.NewCatalogSearchStep(name, config)
 	case "step.contract_validate":
 		return catalog.NewContractValidateStep(name, config)
+	case "step.quality_check":
+		return quality.NewQualityCheckStep(name, config)
+	case "step.quality_schema_validate":
+		return quality.NewQualitySchemaValidateStep(name, config)
+	case "step.quality_profile":
+		return quality.NewQualityProfileStep(name, config)
+	case "step.quality_compare":
+		return quality.NewQualityCompareStep(name, config)
+	case "step.quality_anomaly":
+		return quality.NewQualityAnomalyStep(name, config)
+	case "step.quality_dbt_test":
+		return quality.NewDBTTestStep(name, config)
+	case "step.quality_soda_check":
+		return quality.NewSodaCheckStep(name, config)
+	case "step.quality_ge_validate":
+		return quality.NewGEValidateStep(name, config)
 	default:
 		return nil, fmt.Errorf("data-engineering plugin: unknown step type %q", typeName)
 	}
@@ -259,6 +289,7 @@ func (p *dataEngineeringPlugin) ModuleSchemas() []sdk.ModuleSchemaData {
 	schemas = append(schemas, phase2ModuleSchemas()...)
 	schemas = append(schemas, graph.GraphModuleSchemas()...)
 	schemas = append(schemas, phase3CatalogSchemas()...)
+	schemas = append(schemas, qualityModuleSchemas()...)
 	return schemas
 }
 
@@ -327,6 +358,22 @@ func phase2ModuleSchemas() []sdk.ModuleSchemaData {
 				{Name: "endpoint", Type: "string", Description: "Schema Registry URL", Required: true},
 				{Name: "username", Type: "string", Description: "Basic auth username", Required: false},
 				{Name: "password", Type: "string", Description: "Basic auth password", Required: false},
+			},
+		},
+	}
+}
+
+func qualityModuleSchemas() []sdk.ModuleSchemaData {
+	return []sdk.ModuleSchemaData{
+		{
+			Type:        "quality.checks",
+			Label:       "Data Quality Checks",
+			Category:    "Data Engineering",
+			Description: "Go-native data quality checks, profiling, contract validation, and anomaly detection",
+			ConfigFields: []sdk.ConfigField{
+				{Name: "provider", Type: "string", Description: "Check provider: builtin, dbt, soda, or great_expectations", Required: false, Options: []string{"builtin", "dbt", "soda", "great_expectations"}},
+				{Name: "contractsDir", Type: "string", Description: "Directory containing YAML data contracts", Required: false},
+				{Name: "database", Type: "string", Description: "Referenced database module name for SQL checks", Required: false},
 			},
 		},
 	}
