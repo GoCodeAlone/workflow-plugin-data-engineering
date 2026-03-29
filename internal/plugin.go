@@ -112,10 +112,15 @@ func (p *dataEngineeringPlugin) StepTypes() []string {
 		"step.cdc_status",
 		"step.cdc_snapshot",
 		"step.cdc_schema_history",
+		"step.cdc_backpressure",
+		"step.cdc_monitor",
 		// Tenancy steps
 		"step.tenant_provision",
 		"step.tenant_deprovision",
 		"step.tenant_migrate",
+		"step.tenant_evaluate_promotion",
+		"step.tenant_promote",
+		"step.tenant_demote",
 		// Lakehouse steps
 		"step.lakehouse_create_table",
 		"step.lakehouse_evolve_schema",
@@ -131,6 +136,8 @@ func (p *dataEngineeringPlugin) StepTypes() []string {
 		"step.ts_downsample",
 		"step.ts_retention",
 		"step.ts_continuous_query",
+		"step.ts_archive",
+		"step.ts_tier_status",
 		// Druid-specific steps
 		"step.ts_druid_ingest",
 		"step.ts_druid_query",
@@ -148,6 +155,8 @@ func (p *dataEngineeringPlugin) StepTypes() []string {
 		// Catalog steps (Phase 3)
 		"step.catalog_register",
 		"step.catalog_search",
+		"step.catalog_lineage",
+		"step.catalog_lineage_query",
 		"step.contract_validate",
 		// Data Quality steps (Phase 3)
 		"step.quality_check",
@@ -164,6 +173,12 @@ func (p *dataEngineeringPlugin) StepTypes() []string {
 		"step.migrate_run",
 		"step.migrate_rollback",
 		"step.migrate_status",
+		// Expand-contract + pipeline schema evolution (Phase 4)
+		"step.migrate_expand",
+		"step.migrate_contract",
+		"step.migrate_expand_status",
+		"step.schema_evolve_pipeline",
+		"step.schema_evolve_verify",
 	}
 }
 
@@ -180,12 +195,22 @@ func (p *dataEngineeringPlugin) CreateStep(typeName, name string, config map[str
 		return cdc.NewSnapshotStep(name, config)
 	case "step.cdc_schema_history":
 		return cdc.NewSchemaHistoryStep(name, config)
+	case "step.cdc_backpressure":
+		return cdc.NewBackpressureStep(name, config)
+	case "step.cdc_monitor":
+		return cdc.NewMonitorStep(name, config)
 	case "step.tenant_provision":
 		return tenancy.NewProvisionStep(name, config)
 	case "step.tenant_deprovision":
 		return tenancy.NewDeprovisionStep(name, config)
 	case "step.tenant_migrate":
 		return tenancy.NewMigrateStep(name, config)
+	case "step.tenant_evaluate_promotion":
+		return tenancy.NewEvaluatePromotionStep(name, config)
+	case "step.tenant_promote":
+		return tenancy.NewPromoteStep(name, config)
+	case "step.tenant_demote":
+		return tenancy.NewDemoteStep(name, config)
 	case "step.lakehouse_create_table":
 		return lakehouse.NewCreateTableStep(name, config)
 	case "step.lakehouse_evolve_schema":
@@ -212,6 +237,10 @@ func (p *dataEngineeringPlugin) CreateStep(typeName, name string, config map[str
 		return timeseries.NewTSRetentionStep(name, config)
 	case "step.ts_continuous_query":
 		return timeseries.NewTSContinuousQueryStep(name, config)
+	case "step.ts_archive":
+		return timeseries.NewTSArchiveStep(name, config)
+	case "step.ts_tier_status":
+		return timeseries.NewTSTierStatusStep(name, config)
 	case "step.ts_druid_ingest":
 		return timeseries.NewDruidIngestStep(name, config)
 	case "step.ts_druid_query":
@@ -238,6 +267,10 @@ func (p *dataEngineeringPlugin) CreateStep(typeName, name string, config map[str
 		return catalog.NewCatalogRegisterStep(name, config)
 	case "step.catalog_search":
 		return catalog.NewCatalogSearchStep(name, config)
+	case "step.catalog_lineage":
+		return catalog.NewCatalogLineageStep(name, config)
+	case "step.catalog_lineage_query":
+		return catalog.NewCatalogLineageQueryStep(name, config)
 	case "step.contract_validate":
 		return catalog.NewContractValidateStep(name, config)
 	case "step.quality_check":
@@ -266,6 +299,16 @@ func (p *dataEngineeringPlugin) CreateStep(typeName, name string, config map[str
 		return migrate.NewMigrateRollbackStep(name, config)
 	case "step.migrate_status":
 		return migrate.NewMigrateStatusStep(name, config)
+	case "step.migrate_expand":
+		return migrate.NewMigrateExpandStep(name, config)
+	case "step.migrate_contract":
+		return migrate.NewMigrateContractStep(name, config)
+	case "step.migrate_expand_status":
+		return migrate.NewMigrateExpandStatusStep(name, config)
+	case "step.schema_evolve_pipeline":
+		return migrate.NewSchemaEvolvePipelineStep(name, config)
+	case "step.schema_evolve_verify":
+		return migrate.NewSchemaEvolveVerifyStep(name, config)
 	default:
 		return nil, fmt.Errorf("data-engineering plugin: unknown step type %q", typeName)
 	}

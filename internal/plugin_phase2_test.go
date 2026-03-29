@@ -86,8 +86,8 @@ func TestPlugin_Phase2_AllStepTypes(t *testing.T) {
 			t.Errorf("missing step type %q", req)
 		}
 	}
-	if len(types) != 48 {
-		t.Errorf("expected 48 step types, got %d", len(types))
+	if len(types) != 62 {
+		t.Errorf("expected 62 step types, got %d", len(types))
 	}
 }
 

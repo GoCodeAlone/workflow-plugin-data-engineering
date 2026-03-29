@@ -65,5 +65,54 @@ func MigrateSchemas() map[string]any {
 			},
 			"required": []string{"module"},
 		},
+		"step.migrate_expand": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"table":   map[string]any{"type": "string"},
+				"changes": map[string]any{"type": "array"},
+			},
+			"required": []string{"table", "changes"},
+		},
+		"step.migrate_contract": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"table":   map[string]any{"type": "string"},
+				"changes": map[string]any{"type": "array"},
+				"verify":  map[string]any{"type": "boolean"},
+			},
+			"required": []string{"table", "changes"},
+		},
+		"step.migrate_expand_status": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"table":       map[string]any{"type": "string"},
+				"triggerName": map[string]any{"type": "string"},
+			},
+			"required": []string{"table"},
+		},
+		"step.schema_evolve_pipeline": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"table":            map[string]any{"type": "string"},
+				"namespace":        map[string]any{"type": "string"},
+				"change":           map[string]any{"type": "object"},
+				"source_db":        map[string]any{"type": "string"},
+				"cdc_source":       map[string]any{"type": "string"},
+				"schema_registry":  map[string]any{"type": "string"},
+				"lakehouse_catalog": map[string]any{"type": "string"},
+			},
+			"required": []string{"table", "change"},
+		},
+		"step.schema_evolve_verify": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"table":            map[string]any{"type": "string"},
+				"subject":          map[string]any{"type": "string"},
+				"source_db":        map[string]any{"type": "string"},
+				"schema_registry":  map[string]any{"type": "string"},
+				"lakehouse_catalog": map[string]any{"type": "string"},
+			},
+			"required": []string{"table"},
+		},
 	}
 }
