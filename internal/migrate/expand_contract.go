@@ -2,10 +2,33 @@ package migrate
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/ident"
 )
+
+// validSQLExprRe matches safe SQL expressions for trigger transforms:
+// column references (NEW.col), casts (col::type), simple functions (LOWER(col), COALESCE(col, 'x')),
+// literals, and arithmetic. Rejects semicolons, statement keywords (DELETE, DROP, INSERT, UPDATE, CREATE).
+var validSQLExprRe = regexp.MustCompile(`^[a-zA-Z0-9_.(),:'"\s+\-*/|]+$`)
+var unsafeSQLKeywords = regexp.MustCompile(`(?i)\b(DELETE|DROP|INSERT|UPDATE|CREATE|ALTER|TRUNCATE|EXECUTE|GRANT|REVOKE)\b`)
+
+func validateTransformExpr(expr string) error {
+	if expr == "" {
+		return nil
+	}
+	if !validSQLExprRe.MatchString(expr) {
+		return fmt.Errorf("transform expression %q contains unsafe characters", expr)
+	}
+	if unsafeSQLKeywords.MatchString(expr) {
+		return fmt.Errorf("transform expression %q contains unsafe SQL keyword", expr)
+	}
+	if strings.Contains(expr, ";") {
+		return fmt.Errorf("transform expression %q contains semicolon", expr)
+	}
+	return nil
+}
 
 // ExpandContractChange describes one change in an expand-contract migration.
 type ExpandContractChange struct {
@@ -80,7 +103,10 @@ func applyChange(plan *ExpandContractPlan, table string, ch ExpandContractChange
 		addSQL := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s;", table, ch.NewColumn, ch.NewType)
 		fnName := triggerFnName(table, ch.NewColumn)
 		trgName := triggerName(table, ch.NewColumn)
-		fnSQL, trgSQL := buildTriggerSQL(ch.NewColumn, transform, fnName, trgName, table)
+		fnSQL, trgSQL, err := buildTriggerSQL(ch.NewColumn, transform, fnName, trgName, table)
+		if err != nil {
+			return err
+		}
 		plan.ExpandSQL = append(plan.ExpandSQL, addSQL, fnSQL, trgSQL)
 		// Contract: drop trigger + function only (new column stays)
 		plan.ContractSQL = append(plan.ContractSQL,
@@ -107,7 +133,10 @@ func applyChange(plan *ExpandContractPlan, table string, ch ExpandContractChange
 		addSQL := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s;", table, ch.NewColumn, ch.NewType)
 		fnName := triggerFnName(table, ch.NewColumn)
 		trgName := triggerName(table, ch.NewColumn)
-		fnSQL, trgSQL := buildTriggerSQL(ch.NewColumn, transform, fnName, trgName, table)
+		fnSQL, trgSQL, err := buildTriggerSQL(ch.NewColumn, transform, fnName, trgName, table)
+		if err != nil {
+			return err
+		}
 		plan.ExpandSQL = append(plan.ExpandSQL, addSQL, fnSQL, trgSQL)
 		// Contract: drop trigger + function + old column
 		plan.ContractSQL = append(plan.ContractSQL,
@@ -135,7 +164,10 @@ func applyChange(plan *ExpandContractPlan, table string, ch ExpandContractChange
 		addSQL := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s;", table, ch.NewColumn, ch.NewType)
 		fnName := triggerFnName(table, ch.NewColumn)
 		trgName := triggerName(table, ch.NewColumn)
-		fnSQL, trgSQL := buildTriggerSQL(ch.NewColumn, transform, fnName, trgName, table)
+		fnSQL, trgSQL, err := buildTriggerSQL(ch.NewColumn, transform, fnName, trgName, table)
+		if err != nil {
+			return err
+		}
 		plan.ExpandSQL = append(plan.ExpandSQL, addSQL, fnSQL, trgSQL)
 		// Contract: drop trigger + function + old column
 		plan.ContractSQL = append(plan.ContractSQL,
@@ -164,7 +196,10 @@ func applyChange(plan *ExpandContractPlan, table string, ch ExpandContractChange
 
 // buildTriggerSQL generates a PostgreSQL trigger function and trigger statement
 // that sets newCol := transform on every BEFORE INSERT OR UPDATE.
-func buildTriggerSQL(newCol, transform, fnName, trgName, table string) (fnSQL, trgSQL string) {
+func buildTriggerSQL(newCol, transform, fnName, trgName, table string) (fnSQL, trgSQL string, err error) {
+	if err := validateTransformExpr(transform); err != nil {
+		return "", "", fmt.Errorf("expand-contract trigger: %w", err)
+	}
 	fnSQL = fmt.Sprintf(
 		"CREATE OR REPLACE FUNCTION %s() RETURNS TRIGGER AS $body$\nBEGIN\n  NEW.%s := %s;\n  RETURN NEW;\nEND;\n$body$ LANGUAGE plpgsql;",
 		fnName, newCol, transform,
@@ -173,7 +208,7 @@ func buildTriggerSQL(newCol, transform, fnName, trgName, table string) (fnSQL, t
 		"CREATE TRIGGER %s\n  BEFORE INSERT OR UPDATE ON %s\n  FOR EACH ROW EXECUTE FUNCTION %s();",
 		trgName, table, fnName,
 	)
-	return fnSQL, trgSQL
+	return fnSQL, trgSQL, nil
 }
 
 // triggerFnName returns the name for the trigger function syncing table.col.

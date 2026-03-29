@@ -213,13 +213,16 @@ func TestClickHouseView_InvalidAction(t *testing.T) {
 }
 
 func TestBuildClickHouseViewDDL(t *testing.T) {
-	ddl := buildClickHouseViewDDL(
+	ddl, err := buildClickHouseViewDDL(
 		"hourly_stats",
 		"SummingMergeTree(amount)",
 		"ts",
 		"toYYYYMM(ts)",
 		"SELECT toStartOfHour(ts) as ts, sum(amount) FROM sales GROUP BY ts",
 	)
+	if err != nil {
+		t.Fatal(err)
+	}
 	tests := []struct {
 		substr string
 	}{

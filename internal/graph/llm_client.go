@@ -4,11 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/httpclient"
 )
+
+// validEntityTypeRe matches safe entity type tokens for LLM prompts.
+var validEntityTypeRe = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 
 // LLMEntity is an entity extracted by an LLM.
 type LLMEntity struct {
@@ -60,7 +64,10 @@ func newClaudeClientWithBase(baseURL, apiKey, model string) LLMClient {
 }
 
 func (c *claudeClient) ExtractEntities(ctx context.Context, text string, types []string) ([]LLMEntity, error) {
-	prompt := buildExtractionPrompt(text, types)
+	prompt, err := buildExtractionPrompt(text, types)
+	if err != nil {
+		return nil, err
+	}
 
 	body := map[string]any{
 		"model":      c.model,
@@ -169,8 +176,11 @@ func newOpenAIClientWithBase(baseURL, apiKey, model string) LLMClient {
 }
 
 func (c *openaiClient) ExtractEntities(ctx context.Context, text string, types []string) ([]LLMEntity, error) {
-	prompt := buildExtractionPrompt(text, types) +
-		` Return a JSON object with key "entities" containing an array of {type, value, context, confidence}.`
+	prompt, err := buildExtractionPrompt(text, types)
+	if err != nil {
+		return nil, err
+	}
+	prompt += ` Return a JSON object with key "entities" containing an array of {type, value, context, confidence}.`
 
 	body := map[string]any{
 		"model":           c.model,
@@ -210,7 +220,13 @@ func parseOpenAIEntities(content string) ([]LLMEntity, error) {
 }
 
 // buildExtractionPrompt builds the entity extraction prompt.
-func buildExtractionPrompt(text string, types []string) string {
+// types are validated against a safe token regex to prevent prompt injection.
+func buildExtractionPrompt(text string, types []string) (string, error) {
+	for _, t := range types {
+		if !validEntityTypeRe.MatchString(t) {
+			return "", fmt.Errorf("invalid entity type %q: must match [a-zA-Z_][a-zA-Z0-9_]*", t)
+		}
+	}
 	typesStr := strings.Join(types, ", ")
 	if typesStr == "" {
 		typesStr = "person, organization, location, product, concept"
@@ -219,5 +235,5 @@ func buildExtractionPrompt(text string, types []string) string {
 		"Extract entities of types [%s] from the following text. "+
 			"For each entity return: type, value (the entity text), context (surrounding sentence), confidence (0-1).\n\nText: %s",
 		typesStr, text,
-	)
+	), nil
 }

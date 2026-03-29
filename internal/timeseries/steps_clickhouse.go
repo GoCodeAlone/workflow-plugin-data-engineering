@@ -3,6 +3,7 @@ package timeseries
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/ident"
@@ -77,7 +78,10 @@ func (s *tsClickHouseViewStep) create(ctx context.Context, m *ClickHouseModule, 
 		return nil, fmt.Errorf("step.ts_clickhouse_view %q: module not started", s.name)
 	}
 
-	ddl := buildClickHouseViewDDL(viewName, engine, orderBy, partitionBy, query)
+	ddl, err := buildClickHouseViewDDL(viewName, engine, orderBy, partitionBy, query)
+	if err != nil {
+		return nil, fmt.Errorf("step.ts_clickhouse_view %q: %w", s.name, err)
+	}
 	if err := conn.Exec(ctx, ddl); err != nil {
 		return nil, fmt.Errorf("step.ts_clickhouse_view %q: create view %q: %w", s.name, viewName, err)
 	}
@@ -164,8 +168,40 @@ func (s *tsClickHouseViewStep) status(ctx context.Context, m *ClickHouseModule, 
 	return &sdk.StepResult{Output: out}, nil
 }
 
+// validCHEngineRe matches safe ClickHouse engine names like AggregatingMergeTree(), SummingMergeTree(amount).
+var validCHEngineRe = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]*\([a-zA-Z0-9_, ]*\)$`)
+
+// validCHExprRe matches safe ClickHouse expressions for ORDER BY / PARTITION BY.
+// Allows identifiers, function calls, commas, spaces, parens — rejects semicolons and SQL keywords.
+var validCHExprRe = regexp.MustCompile(`^[a-zA-Z0-9_(),. ]+$`)
+var unsafeCHKeywords = regexp.MustCompile(`(?i)\b(DROP|DELETE|INSERT|UPDATE|CREATE|ALTER|TRUNCATE)\b`)
+
+// validateCHExpr validates a ClickHouse ORDER BY / PARTITION BY expression.
+func validateCHExpr(s, field string) error {
+	if !validCHExprRe.MatchString(s) {
+		return fmt.Errorf("%s %q contains unsafe characters", field, s)
+	}
+	if unsafeCHKeywords.MatchString(s) {
+		return fmt.Errorf("%s %q contains unsafe keyword", field, s)
+	}
+	return nil
+}
+
 // buildClickHouseViewDDL builds the CREATE MATERIALIZED VIEW DDL.
-func buildClickHouseViewDDL(viewName, engine, orderBy, partitionBy, query string) string {
+func buildClickHouseViewDDL(viewName, engine, orderBy, partitionBy, query string) (string, error) {
+	if engine != "" && !validCHEngineRe.MatchString(engine) {
+		return "", fmt.Errorf("step.ts_clickhouse_view: unsafe engine %q", engine)
+	}
+	if orderBy != "" {
+		if err := validateCHExpr(orderBy, "orderBy"); err != nil {
+			return "", fmt.Errorf("step.ts_clickhouse_view: %w", err)
+		}
+	}
+	if partitionBy != "" {
+		if err := validateCHExpr(partitionBy, "partitionBy"); err != nil {
+			return "", fmt.Errorf("step.ts_clickhouse_view: %w", err)
+		}
+	}
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("CREATE MATERIALIZED VIEW IF NOT EXISTS %s\n", viewName))
 	sb.WriteString(fmt.Sprintf("ENGINE = %s\n", engine))
@@ -177,5 +213,5 @@ func buildClickHouseViewDDL(viewName, engine, orderBy, partitionBy, query string
 	}
 	sb.WriteString("AS ")
 	sb.WriteString(query)
-	return sb.String()
+	return sb.String(), nil
 }

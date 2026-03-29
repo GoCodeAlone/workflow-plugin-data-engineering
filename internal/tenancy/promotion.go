@@ -176,11 +176,24 @@ func (s *promoteStep) Execute(
 	if len(tables) == 0 {
 		return nil, fmt.Errorf("step.tenant_promote %q: tables is required", s.name)
 	}
+	for _, t := range tables {
+		if err := validateIdentifier(t); err != nil {
+			return nil, fmt.Errorf("step.tenant_promote %q: table %w", s.name, err)
+		}
+	}
 
 	schemaPrefix, _ := stringVal(config, "schema_prefix")
+	if schemaPrefix != "" {
+		if err := validateIdentifier(schemaPrefix); err != nil {
+			return nil, fmt.Errorf("step.tenant_promote %q: schema_prefix %w", s.name, err)
+		}
+	}
 	tenantColumn, _ := stringVal(config, "tenant_column")
 	if tenantColumn == "" {
 		tenantColumn = "tenant_id"
+	}
+	if err := validateIdentifier(tenantColumn); err != nil {
+		return nil, fmt.Errorf("step.tenant_promote %q: tenant_column %w", s.name, err)
 	}
 
 	deleteFromShared := false
@@ -304,8 +317,18 @@ func (s *demoteStep) Execute(
 	if len(tables) == 0 {
 		return nil, fmt.Errorf("step.tenant_demote %q: tables is required", s.name)
 	}
+	for _, t := range tables {
+		if err := validateIdentifier(t); err != nil {
+			return nil, fmt.Errorf("step.tenant_demote %q: table %w", s.name, err)
+		}
+	}
 
 	schemaPrefix, _ := stringVal(config, "schema_prefix")
+	if schemaPrefix != "" {
+		if err := validateIdentifier(schemaPrefix); err != nil {
+			return nil, fmt.Errorf("step.tenant_demote %q: schema_prefix %w", s.name, err)
+		}
+	}
 
 	sourcePrefix := ""
 	if fromTier == TierSchemaPerTenant {

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	parquet "github.com/parquet-go/parquet-go"
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/ident"
 	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
 )
 
@@ -347,6 +348,12 @@ func (m *ClickHouseModule) Status(ctx context.Context, measurement string) (*Tie
 
 	if conn == nil {
 		return nil, fmt.Errorf("timeseries.clickhouse %q: not started", m.name)
+	}
+	if err := ident.Validate(measurement); err != nil {
+		return nil, fmt.Errorf("timeseries.clickhouse %q: measurement %w", m.name, err)
+	}
+	if err := ident.Validate(db); err != nil {
+		return nil, fmt.Errorf("timeseries.clickhouse %q: database %w", m.name, err)
 	}
 
 	query := fmt.Sprintf(
