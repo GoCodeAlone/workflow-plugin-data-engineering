@@ -1,13 +1,15 @@
 {
     "name": "workflow-plugin-data-engineering",
     "version": "0.2.0",
+    "dependencies": [
+        {"name": "bento", "minVersion": "1.0.0"}
+    ],
     "description": "Data engineering plugin: CDC, lakehouse, time-series, graph, data quality, catalog, migration, multi-tenancy",
     "author": "GoCodeAlone",
-    "license": "Commercial",
+    "license": "MIT",
     "type": "external",
     "tier": "core",
-    "private": true,
-    "selfHosted": true,
+    "private": false,
     "minEngineVersion": "0.3.56",
     "keywords": ["cdc", "lakehouse", "timeseries", "graph", "data-quality", "multi-tenancy", "debezium", "iceberg", "neo4j", "catalog", "migration", "data-contract"],
     "homepage": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering",
