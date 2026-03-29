@@ -165,6 +165,7 @@ require (
 	github.com/nats-io/nkeys v0.4.15 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
+	github.com/neo4j/neo4j-go-driver/v5 v5.28.4 // indirect
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 // indirect
 	github.com/oapi-codegen/runtime v1.0.0 // indirect
 	github.com/oklog/run v1.2.0 // indirect
@@ -228,6 +229,7 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
+	gonum.org/v1/gonum v0.17.0 // indirect
 	google.golang.org/api v0.269.0 // indirect
 	google.golang.org/genproto v0.0.0-20260128011058-8636f8732409 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260226221140-a57be14db171 // indirect
