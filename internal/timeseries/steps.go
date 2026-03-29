@@ -203,12 +203,12 @@ func (s *tsDownsampleStep) Execute(ctx context.Context, _ map[string]any, _ map[
 
 func buildDownsampleFlux(bucket, source, target, aggregation, interval string) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf(`from(bucket: "%s")`, bucket))
+	sb.WriteString(fmt.Sprintf("from(bucket: \"%s\")", bucket))
 	sb.WriteString("\n  |> range(start: -inf)")
-	sb.WriteString(fmt.Sprintf(`\n  |> filter(fn: (r) => r._measurement == "%s")`, source))
-	sb.WriteString(fmt.Sprintf(`\n  |> aggregateWindow(every: %s, fn: %s, createEmpty: false)`, interval, aggregation))
-	sb.WriteString(fmt.Sprintf(`\n  |> set(key: "_measurement", value: "%s")`, target))
-	sb.WriteString(fmt.Sprintf(`\n  |> to(bucket: "%s")`, bucket))
+	sb.WriteString(fmt.Sprintf("\n  |> filter(fn: (r) => r._measurement == \"%s\")", source))
+	sb.WriteString(fmt.Sprintf("\n  |> aggregateWindow(every: %s, fn: %s, createEmpty: false)", interval, aggregation))
+	sb.WriteString(fmt.Sprintf("\n  |> set(key: \"_measurement\", value: \"%s\")", target))
+	sb.WriteString(fmt.Sprintf("\n  |> to(bucket: \"%s\")", bucket))
 	return sb.String()
 }
 

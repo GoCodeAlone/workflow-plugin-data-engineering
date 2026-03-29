@@ -26,9 +26,9 @@ type DruidModule struct {
 	mu         sync.RWMutex
 	name       string
 	config     DruidConfig
-	client     DruidClient
-	httpClient *http.Client
-	newClient  func(cfg DruidConfig) DruidClient
+	client         DruidClient
+	taskHTTPClient *http.Client
+	newClient      func(cfg DruidConfig) DruidClient
 }
 
 // NewDruidModule creates a new timeseries.druid module instance.
@@ -62,8 +62,14 @@ func (m *DruidModule) Start(ctx context.Context) error {
 		return fmt.Errorf("timeseries.druid %q: connect: %w", m.name, err)
 	}
 
+	timeout := m.config.HTTPTimeout
+	if timeout == 0 {
+		timeout = 60 * time.Second
+	}
+
 	m.mu.Lock()
 	m.client = client
+	m.taskHTTPClient = &http.Client{Timeout: timeout}
 	m.mu.Unlock()
 
 	if err := Register(m.name, m); err != nil {
@@ -77,6 +83,7 @@ func (m *DruidModule) Stop(_ context.Context) error {
 	Unregister(m.name)
 	m.mu.Lock()
 	m.client = nil
+	m.taskHTTPClient = nil
 	m.mu.Unlock()
 	return nil
 }
@@ -110,6 +117,7 @@ func (m *DruidModule) WriteBatch(ctx context.Context, points []Point) error {
 	m.mu.RLock()
 	client := m.client
 	cfg := m.config
+	httpCl := m.taskHTTPClient
 	m.mu.RUnlock()
 	if client == nil {
 		return fmt.Errorf("timeseries.druid %q: not started", m.name)
@@ -131,7 +139,7 @@ func (m *DruidModule) WriteBatch(ctx context.Context, points []Point) error {
 
 	for datasource, rows := range byDS {
 		spec := buildDruidInlineTask(datasource, rows)
-		if err := submitDruidTask(ctx, cfg, spec); err != nil {
+		if err := submitDruidTask(ctx, cfg, httpCl, spec); err != nil {
 			return fmt.Errorf("timeseries.druid %q: WriteBatch: %w", m.name, err)
 		}
 	}
@@ -188,13 +196,11 @@ func buildDruidInlineTask(datasource string, rows []map[string]any) map[string]a
 	}
 }
 
-// submitDruidTask POSTs a task spec to Druid's overlord.
-func submitDruidTask(ctx context.Context, cfg DruidConfig, spec map[string]any) error {
-	timeout := cfg.HTTPTimeout
-	if timeout == 0 {
-		timeout = 60 * time.Second
+// submitDruidTask POSTs a task spec to Druid's overlord using the provided HTTP client.
+func submitDruidTask(ctx context.Context, cfg DruidConfig, client *http.Client, spec map[string]any) error {
+	if client == nil {
+		client = &http.Client{Timeout: 60 * time.Second}
 	}
-	client := &http.Client{Timeout: timeout}
 
 	body, err := json.Marshal(spec)
 	if err != nil {

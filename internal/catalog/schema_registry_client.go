@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 )
@@ -129,7 +130,7 @@ func (c *srHTTPClient) ListSubjects(ctx context.Context) ([]string, error) {
 }
 
 func (c *srHTTPClient) RegisterSchema(ctx context.Context, subject string, schema SchemaDefinition) (int, error) {
-	resp, err := c.do(ctx, http.MethodPost, "/subjects/"+subject+"/versions", schema)
+	resp, err := c.do(ctx, http.MethodPost, "/subjects/"+url.PathEscape(subject)+"/versions", schema)
 	if err != nil {
 		return 0, fmt.Errorf("RegisterSchema: %w", err)
 	}
@@ -155,7 +156,7 @@ func (c *srHTTPClient) GetSchema(ctx context.Context, id int) (*SchemaDefinition
 }
 
 func (c *srHTTPClient) GetLatestSchema(ctx context.Context, subject string) (*SchemaInfo, error) {
-	resp, err := c.do(ctx, http.MethodGet, "/subjects/"+subject+"/versions/latest", nil)
+	resp, err := c.do(ctx, http.MethodGet, "/subjects/"+url.PathEscape(subject)+"/versions/latest", nil)
 	if err != nil {
 		return nil, fmt.Errorf("GetLatestSchema: %w", err)
 	}
@@ -167,7 +168,7 @@ func (c *srHTTPClient) GetLatestSchema(ctx context.Context, subject string) (*Sc
 }
 
 func (c *srHTTPClient) GetSchemaByVersion(ctx context.Context, subject, version string) (*SchemaInfo, error) {
-	resp, err := c.do(ctx, http.MethodGet, "/subjects/"+subject+"/versions/"+version, nil)
+	resp, err := c.do(ctx, http.MethodGet, "/subjects/"+url.PathEscape(subject)+"/versions/"+url.PathEscape(version), nil)
 	if err != nil {
 		return nil, fmt.Errorf("GetSchemaByVersion: %w", err)
 	}
@@ -179,7 +180,7 @@ func (c *srHTTPClient) GetSchemaByVersion(ctx context.Context, subject, version 
 }
 
 func (c *srHTTPClient) DeleteSubject(ctx context.Context, subject string, permanent bool) ([]int, error) {
-	path := "/subjects/" + subject
+	path := "/subjects/" + url.PathEscape(subject)
 	if permanent {
 		path += "?permanent=true"
 	}
@@ -195,7 +196,7 @@ func (c *srHTTPClient) DeleteSubject(ctx context.Context, subject string, perman
 }
 
 func (c *srHTTPClient) CheckCompatibility(ctx context.Context, subject string, schema SchemaDefinition) (bool, error) {
-	resp, err := c.do(ctx, http.MethodPost, "/compatibility/subjects/"+subject+"/versions/latest", schema)
+	resp, err := c.do(ctx, http.MethodPost, "/compatibility/subjects/"+url.PathEscape(subject)+"/versions/latest", schema)
 	if err != nil {
 		return false, fmt.Errorf("CheckCompatibility: %w", err)
 	}
@@ -211,7 +212,7 @@ func (c *srHTTPClient) CheckCompatibility(ctx context.Context, subject string, s
 func (c *srHTTPClient) GetCompatibilityLevel(ctx context.Context, subject string) (string, error) {
 	path := "/config"
 	if subject != "" {
-		path = "/config/" + subject
+		path = "/config/" + url.PathEscape(subject)
 	}
 	resp, err := c.do(ctx, http.MethodGet, path, nil)
 	if err != nil {
@@ -229,7 +230,7 @@ func (c *srHTTPClient) GetCompatibilityLevel(ctx context.Context, subject string
 func (c *srHTTPClient) SetCompatibilityLevel(ctx context.Context, subject string, level string) error {
 	path := "/config"
 	if subject != "" {
-		path = "/config/" + subject
+		path = "/config/" + url.PathEscape(subject)
 	}
 	body := map[string]string{"compatibility": level}
 	resp, err := c.do(ctx, http.MethodPut, path, body)

@@ -156,7 +156,6 @@ func (m *InfluxModule) WriteBatch(ctx context.Context, points []Point) error {
 func (m *InfluxModule) Query(ctx context.Context, query string, _ ...any) ([]map[string]any, error) {
 	m.mu.RLock()
 	qapi := m.queryAPI
-	org := m.config.Org
 	m.mu.RUnlock()
 	if qapi == nil {
 		return nil, fmt.Errorf("timeseries.influxdb %q: not started", m.name)
@@ -165,7 +164,6 @@ func (m *InfluxModule) Query(ctx context.Context, query string, _ ...any) ([]map
 	if err != nil {
 		return nil, fmt.Errorf("timeseries.influxdb %q: query: %w", m.name, err)
 	}
-	_ = org
 	var rows []map[string]any
 	for result.Next() {
 		record := result.Record()

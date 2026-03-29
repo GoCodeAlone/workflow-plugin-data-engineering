@@ -70,10 +70,13 @@ func defaultQuestDBSenderFactory(ctx context.Context, cfg QuestDBConfig) (qdb.Li
 
 // Init validates the module configuration.
 func (m *QuestDBModule) Init() error {
-	if m.config.ILPEndpoint == "" {
+	m.mu.RLock()
+	cfg := m.config
+	m.mu.RUnlock()
+	if cfg.ILPEndpoint == "" {
 		return fmt.Errorf("timeseries.questdb %q: ilpEndpoint is required", m.name)
 	}
-	if m.config.HTTPEndpoint == "" {
+	if cfg.HTTPEndpoint == "" {
 		return fmt.Errorf("timeseries.questdb %q: httpEndpoint is required", m.name)
 	}
 	return nil

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -192,7 +193,7 @@ func (c *druidHTTPClient) SubmitSupervisor(ctx context.Context, spec map[string]
 }
 
 func (c *druidHTTPClient) GetSupervisorStatus(ctx context.Context, id string) (*SupervisorStatus, error) {
-	resp, err := c.do(ctx, http.MethodGet, "/druid/indexer/v1/supervisor/"+id+"/status", nil)
+	resp, err := c.do(ctx, http.MethodGet, "/druid/indexer/v1/supervisor/"+url.PathEscape(id)+"/status", nil)
 	if err != nil {
 		return nil, fmt.Errorf("druid GetSupervisorStatus: %w", err)
 	}
@@ -204,7 +205,7 @@ func (c *druidHTTPClient) GetSupervisorStatus(ctx context.Context, id string) (*
 }
 
 func (c *druidHTTPClient) SuspendSupervisor(ctx context.Context, id string) error {
-	resp, err := c.do(ctx, http.MethodPost, "/druid/indexer/v1/supervisor/"+id+"/suspend", nil)
+	resp, err := c.do(ctx, http.MethodPost, "/druid/indexer/v1/supervisor/"+url.PathEscape(id)+"/suspend", nil)
 	if err != nil {
 		return fmt.Errorf("druid SuspendSupervisor: %w", err)
 	}
@@ -212,7 +213,7 @@ func (c *druidHTTPClient) SuspendSupervisor(ctx context.Context, id string) erro
 }
 
 func (c *druidHTTPClient) ResumeSupervisor(ctx context.Context, id string) error {
-	resp, err := c.do(ctx, http.MethodPost, "/druid/indexer/v1/supervisor/"+id+"/resume", nil)
+	resp, err := c.do(ctx, http.MethodPost, "/druid/indexer/v1/supervisor/"+url.PathEscape(id)+"/resume", nil)
 	if err != nil {
 		return fmt.Errorf("druid ResumeSupervisor: %w", err)
 	}
@@ -220,7 +221,7 @@ func (c *druidHTTPClient) ResumeSupervisor(ctx context.Context, id string) error
 }
 
 func (c *druidHTTPClient) TerminateSupervisor(ctx context.Context, id string) error {
-	resp, err := c.do(ctx, http.MethodPost, "/druid/indexer/v1/supervisor/"+id+"/terminate", nil)
+	resp, err := c.do(ctx, http.MethodPost, "/druid/indexer/v1/supervisor/"+url.PathEscape(id)+"/terminate", nil)
 	if err != nil {
 		return fmt.Errorf("druid TerminateSupervisor: %w", err)
 	}
@@ -240,7 +241,7 @@ func (c *druidHTTPClient) ListDatasources(ctx context.Context) ([]string, error)
 }
 
 func (c *druidHTTPClient) GetDatasource(ctx context.Context, name string) (*DatasourceInfo, error) {
-	resp, err := c.do(ctx, http.MethodGet, "/druid/coordinator/v1/datasources/"+name, nil)
+	resp, err := c.do(ctx, http.MethodGet, "/druid/coordinator/v1/datasources/"+url.PathEscape(name), nil)
 	if err != nil {
 		return nil, fmt.Errorf("druid GetDatasource: %w", err)
 	}
@@ -252,7 +253,7 @@ func (c *druidHTTPClient) GetDatasource(ctx context.Context, name string) (*Data
 }
 
 func (c *druidHTTPClient) DisableDatasource(ctx context.Context, name string) error {
-	resp, err := c.do(ctx, http.MethodDelete, "/druid/coordinator/v1/datasources/"+name, nil)
+	resp, err := c.do(ctx, http.MethodDelete, "/druid/coordinator/v1/datasources/"+url.PathEscape(name), nil)
 	if err != nil {
 		return fmt.Errorf("druid DisableDatasource: %w", err)
 	}
