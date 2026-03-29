@@ -138,6 +138,7 @@ func (p *dataEngineeringPlugin) StepTypes() []string {
 		"step.ts_continuous_query",
 		"step.ts_archive",
 		"step.ts_tier_status",
+		"step.ts_clickhouse_view",
 		// Druid-specific steps
 		"step.ts_druid_ingest",
 		"step.ts_druid_query",
@@ -151,6 +152,7 @@ func (p *dataEngineeringPlugin) StepTypes() []string {
 		"step.graph_write",
 		"step.graph_import",
 		"step.graph_extract_entities",
+		"step.graph_extract_entities_llm",
 		"step.graph_link",
 		// Catalog steps (Phase 3)
 		"step.catalog_register",
@@ -241,6 +243,8 @@ func (p *dataEngineeringPlugin) CreateStep(typeName, name string, config map[str
 		return timeseries.NewTSArchiveStep(name, config)
 	case "step.ts_tier_status":
 		return timeseries.NewTSTierStatusStep(name, config)
+	case "step.ts_clickhouse_view":
+		return timeseries.NewTSClickHouseViewStep(name, config)
 	case "step.ts_druid_ingest":
 		return timeseries.NewDruidIngestStep(name, config)
 	case "step.ts_druid_query":
@@ -261,6 +265,8 @@ func (p *dataEngineeringPlugin) CreateStep(typeName, name string, config map[str
 		return graph.NewGraphImportStep(name, config)
 	case "step.graph_extract_entities":
 		return graph.NewGraphExtractEntitiesStep(name, config)
+	case "step.graph_extract_entities_llm":
+		return graph.NewGraphExtractEntitiesLLMStep(name, config)
 	case "step.graph_link":
 		return graph.NewGraphLinkStep(name, config)
 	case "step.catalog_register":

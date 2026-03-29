@@ -105,8 +105,8 @@ func TestPlugin_AllStepTypes(t *testing.T) {
 			t.Errorf("missing step type %q in StepTypes()", typ)
 		}
 	}
-	if len(types) != 62 {
-		t.Errorf("expected 62 step types, got %d", len(types))
+	if len(types) != 64 {
+		t.Errorf("expected 64 step types, got %d", len(types))
 	}
 }
 
