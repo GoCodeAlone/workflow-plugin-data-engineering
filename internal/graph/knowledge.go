@@ -222,7 +222,10 @@ func (s *graphLinkStep) Execute(ctx context.Context, _ map[string]any, _ map[str
 		return nil, fmt.Errorf("step.graph_link %q: %w", s.name, err)
 	}
 
-	cypher, params := buildLinkCypher(fromLabel, fromKey, toLabel, toKey, relType, props)
+	cypher, params, err := buildLinkCypher(fromLabel, fromKey, toLabel, toKey, relType, props)
+	if err != nil {
+		return nil, fmt.Errorf("step.graph_link %q: %w", s.name, err)
+	}
 	rows, err := mod.ExecuteCypher(ctx, cypher, params)
 	if err != nil {
 		return nil, fmt.Errorf("step.graph_link %q: %w", s.name, err)
@@ -241,7 +244,19 @@ func (s *graphLinkStep) Execute(ctx context.Context, _ map[string]any, _ map[str
 }
 
 // buildLinkCypher builds a MATCH + MERGE Cypher for creating relationships.
-func buildLinkCypher(fromLabel, fromKey, toLabel, toKey, relType string, props map[string]any) (string, map[string]any) {
+func buildLinkCypher(fromLabel, fromKey, toLabel, toKey, relType string, props map[string]any) (string, map[string]any, error) {
+	for _, pair := range [][2]string{
+		{fromLabel, "from label"}, {toLabel, "to label"}, {relType, "relationship type"},
+	} {
+		if err := validateCypherIdent(pair[0], pair[1]); err != nil {
+			return "", nil, err
+		}
+	}
+	for k := range props {
+		if err := validateCypherIdent(k, "property key"); err != nil {
+			return "", nil, err
+		}
+	}
 	params := make(map[string]any)
 	var matchClauses []string
 
@@ -273,5 +288,5 @@ func buildLinkCypher(fromLabel, fromKey, toLabel, toKey, relType string, props m
 		cypher = fmt.Sprintf("%s MERGE (a)-[r:%s]->(b) RETURN count(r) AS linked",
 			strings.Join(matchClauses, " "), relType)
 	}
-	return cypher, params
+	return cypher, params, nil
 }

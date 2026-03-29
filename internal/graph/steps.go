@@ -3,10 +3,21 @@ package graph
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
 )
+
+// validCypherIdentRe matches safe Cypher labels, relationship types, and property keys.
+var validCypherIdentRe = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
+
+func validateCypherIdent(id, kind string) error {
+	if !validCypherIdentRe.MatchString(id) {
+		return fmt.Errorf("invalid Cypher %s %q: must match [a-zA-Z_][a-zA-Z0-9_]*", kind, id)
+	}
+	return nil
+}
 
 // -- step.graph_query --
 
@@ -85,7 +96,10 @@ func (s *graphWriteStep) Execute(ctx context.Context, _ map[string]any, _ map[st
 			}
 			props, _ := nodeMap["properties"].(map[string]any)
 
-			cypher, params := buildNodeMergeCypher(label, props)
+			cypher, params, err := buildNodeMergeCypher(label, props)
+			if err != nil {
+				return nil, fmt.Errorf("step.graph_write %q: %w", s.name, err)
+			}
 			rows, err := mod.ExecuteCypher(ctx, cypher, params)
 			if err != nil {
 				return nil, fmt.Errorf("step.graph_write %q: node merge: %w", s.name, err)
@@ -113,7 +127,10 @@ func (s *graphWriteStep) Execute(ctx context.Context, _ map[string]any, _ map[st
 			}
 			props, _ := relMap["properties"].(map[string]any)
 
-			cypher, params := buildRelMergeCypher(fromLabel, toLabel, relType, props)
+			cypher, params, err := buildRelMergeCypher(fromLabel, toLabel, relType, props)
+			if err != nil {
+				return nil, fmt.Errorf("step.graph_write %q: %w", s.name, err)
+			}
 			rows, err := mod.ExecuteCypher(ctx, cypher, params)
 			if err != nil {
 				return nil, fmt.Errorf("step.graph_write %q: relationship merge: %w", s.name, err)
@@ -135,10 +152,16 @@ func (s *graphWriteStep) Execute(ctx context.Context, _ map[string]any, _ map[st
 }
 
 // buildNodeMergeCypher generates a MERGE Cypher for a labeled node with properties.
-func buildNodeMergeCypher(label string, props map[string]any) (string, map[string]any) {
+func buildNodeMergeCypher(label string, props map[string]any) (string, map[string]any, error) {
+	if err := validateCypherIdent(label, "label"); err != nil {
+		return "", nil, err
+	}
 	params := make(map[string]any)
 	var setParts []string
 	for k, v := range props {
+		if err := validateCypherIdent(k, "property key"); err != nil {
+			return "", nil, err
+		}
 		paramKey := "prop_" + k
 		params[paramKey] = v
 		setParts = append(setParts, fmt.Sprintf("n.%s = $%s", k, paramKey))
@@ -147,14 +170,24 @@ func buildNodeMergeCypher(label string, props map[string]any) (string, map[strin
 	if len(setParts) == 0 {
 		cypher = fmt.Sprintf("MERGE (n:%s) RETURN count(n) AS nodesCreated", label)
 	}
-	return cypher, params
+	return cypher, params, nil
 }
 
 // buildRelMergeCypher generates a MERGE Cypher for a relationship between two node labels.
-func buildRelMergeCypher(fromLabel, toLabel, relType string, props map[string]any) (string, map[string]any) {
+func buildRelMergeCypher(fromLabel, toLabel, relType string, props map[string]any) (string, map[string]any, error) {
+	for _, pair := range [][2]string{
+		{fromLabel, "from label"}, {toLabel, "to label"}, {relType, "relationship type"},
+	} {
+		if err := validateCypherIdent(pair[0], pair[1]); err != nil {
+			return "", nil, err
+		}
+	}
 	params := make(map[string]any)
 	var setParts []string
 	for k, v := range props {
+		if err := validateCypherIdent(k, "property key"); err != nil {
+			return "", nil, err
+		}
 		paramKey := "rel_" + k
 		params[paramKey] = v
 		setParts = append(setParts, fmt.Sprintf("r.%s = $%s", k, paramKey))
@@ -171,7 +204,7 @@ func buildRelMergeCypher(fromLabel, toLabel, relType string, props map[string]an
 			fromLabel, toLabel, relType,
 		)
 	}
-	return cypher, params
+	return cypher, params, nil
 }
 
 // -- step.graph_import --
@@ -212,7 +245,10 @@ func (s *graphImportStep) Execute(ctx context.Context, _ map[string]any, _ map[s
 	}
 
 	// Build UNWIND batch MERGE
-	cypher, params := buildImportCypher(nodeLabel, propMap, source)
+	cypher, params, err := buildImportCypher(nodeLabel, propMap, source)
+	if err != nil {
+		return nil, fmt.Errorf("step.graph_import %q: %w", s.name, err)
+	}
 	rows, err := mod.ExecuteCypher(ctx, cypher, params)
 	if err != nil {
 		return nil, fmt.Errorf("step.graph_import %q: %w", s.name, err)
@@ -234,7 +270,15 @@ func (s *graphImportStep) Execute(ctx context.Context, _ map[string]any, _ map[s
 }
 
 // buildImportCypher builds an UNWIND + MERGE query for bulk import.
-func buildImportCypher(nodeLabel string, propMap map[string]any, source []any) (string, map[string]any) {
+func buildImportCypher(nodeLabel string, propMap map[string]any, source []any) (string, map[string]any, error) {
+	if err := validateCypherIdent(nodeLabel, "label"); err != nil {
+		return "", nil, err
+	}
+	for k := range propMap {
+		if err := validateCypherIdent(k, "property key"); err != nil {
+			return "", nil, err
+		}
+	}
 	// Transform source records applying property mapping
 	rows := make([]any, 0, len(source))
 	for _, item := range source {
@@ -280,5 +324,5 @@ func buildImportCypher(nodeLabel string, propMap map[string]any, source []any) (
 		)
 	}
 
-	return cypher, map[string]any{"rows": rows}
+	return cypher, map[string]any{"rows": rows}, nil
 }

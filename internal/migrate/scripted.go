@@ -54,8 +54,12 @@ type AppliedMigration struct {
 var scriptFileRe = regexp.MustCompile(`^(\d+)_([^.]+)\.(up|down)\.sql$`)
 
 // NewMigrationRunner creates a runner backed by executor storing state in lockTable.
-func NewMigrationRunner(executor SQLExecutor, lockTable string) *MigrationRunner {
-	return &MigrationRunner{executor: executor, lockTable: lockTable}
+// Returns an error if lockTable is not a valid SQL identifier.
+func NewMigrationRunner(executor SQLExecutor, lockTable string) (*MigrationRunner, error) {
+	if err := validateIdentifier(lockTable); err != nil {
+		return nil, fmt.Errorf("lock table: %w", err)
+	}
+	return &MigrationRunner{executor: executor, lockTable: lockTable}, nil
 }
 
 // EnsureLockTable creates the migration state table if it does not exist.

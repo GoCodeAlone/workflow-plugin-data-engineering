@@ -195,6 +195,15 @@ func (m *Neo4jModule) ExecuteCypher(ctx context.Context, cypher string, params m
 	return rows, nil
 }
 
+// NewNeo4jModuleForTest creates a Neo4jModule with an injected driver for integration testing.
+func NewNeo4jModuleForTest(name string, driver Neo4jDriver) *Neo4jModule {
+	return &Neo4jModule{
+		name:   name,
+		config: Neo4jConfig{URI: "bolt://test:7687", Database: "neo4j"},
+		driver: driver,
+	}
+}
+
 func parseNeo4jConfig(config map[string]any) (Neo4jConfig, error) {
 	var cfg Neo4jConfig
 	cfg.Database = "neo4j" // default

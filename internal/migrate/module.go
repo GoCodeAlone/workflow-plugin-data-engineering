@@ -100,7 +100,11 @@ func (m *SchemaModule) Start(_ context.Context) error {
 		}
 	}
 
-	m.runner = NewMigrationRunner(nil, lockTable) // executor injected at step run time
+	runner, err := NewMigrationRunner(nil, lockTable) // executor injected at step run time
+	if err != nil {
+		return fmt.Errorf("migrate.schema %q: %w", m.name, err)
+	}
+	m.runner = runner
 
 	if err := RegisterModule(m.name, m); err != nil {
 		return fmt.Errorf("migrate.schema %q: register: %w", m.name, err)

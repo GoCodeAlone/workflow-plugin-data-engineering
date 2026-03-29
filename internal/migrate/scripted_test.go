@@ -27,7 +27,10 @@ func TestMigrationRunner_EnsureLockTable(t *testing.T) {
 	mock.ExpectExec("CREATE TABLE IF NOT EXISTS schema_migrations").
 		WillReturnResult(sqlmock.NewResult(0, 0))
 
-	r := NewMigrationRunner(db, "schema_migrations")
+	r, err := NewMigrationRunner(db, "schema_migrations")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err := r.EnsureLockTable(context.Background()); err != nil {
 		t.Fatal(err)
 	}
@@ -38,8 +41,8 @@ func TestMigrationRunner_EnsureLockTable(t *testing.T) {
 
 func TestMigrationRunner_EnsureLockTable_InvalidName(t *testing.T) {
 	db, _ := newMockDB(t)
-	r := NewMigrationRunner(db, "bad name!")
-	if err := r.EnsureLockTable(context.Background()); err == nil {
+	_, err := NewMigrationRunner(db, "bad name!")
+	if err == nil {
 		t.Error("expected error for invalid lock table name")
 	}
 }
@@ -124,7 +127,10 @@ func TestMigrationRunner_Apply(t *testing.T) {
 	// advisory unlock
 	mock.ExpectExec("SELECT pg_advisory_unlock").WillReturnResult(sqlmock.NewResult(0, 0))
 
-	r := NewMigrationRunner(db, "schema_migrations")
+	r, err := NewMigrationRunner(db, "schema_migrations")
+	if err != nil {
+		t.Fatal(err)
+	}
 	scripts := []MigrationScript{
 		{Version: 1, Description: "create_users", UpSQL: "CREATE TABLE users (id BIGINT);"},
 		{Version: 2, Description: "add_email", UpSQL: "ALTER TABLE users ADD COLUMN email TEXT;"},
@@ -155,7 +161,10 @@ func TestMigrationRunner_Apply_SkipsApplied(t *testing.T) {
 	// advisory unlock
 	mock.ExpectExec("SELECT pg_advisory_unlock").WillReturnResult(sqlmock.NewResult(0, 0))
 
-	r := NewMigrationRunner(db, "schema_migrations")
+	r, err := NewMigrationRunner(db, "schema_migrations")
+	if err != nil {
+		t.Fatal(err)
+	}
 	scripts := []MigrationScript{
 		{Version: 1, Description: "create_users", UpSQL: "CREATE TABLE users (id BIGINT);"},
 		{Version: 2, Description: "add_email", UpSQL: "ALTER TABLE users ADD COLUMN email TEXT;"},
@@ -187,7 +196,10 @@ func TestMigrationRunner_Rollback(t *testing.T) {
 	// advisory unlock
 	mock.ExpectExec("SELECT pg_advisory_unlock").WillReturnResult(sqlmock.NewResult(0, 0))
 
-	r := NewMigrationRunner(db, "schema_migrations")
+	r, err := NewMigrationRunner(db, "schema_migrations")
+	if err != nil {
+		t.Fatal(err)
+	}
 	scripts := []MigrationScript{
 		{Version: 1, Description: "create_users", UpSQL: "CREATE TABLE users (id BIGINT);", DownSQL: "DROP TABLE users;"},
 		{Version: 2, Description: "add_email", UpSQL: "ALTER TABLE users ADD COLUMN email TEXT;", DownSQL: "ALTER TABLE users DROP COLUMN email;"},
@@ -210,12 +222,15 @@ func TestMigrationRunner_Rollback_NoDownSQL(t *testing.T) {
 		WillReturnRows(rows)
 	mock.ExpectExec("SELECT pg_advisory_unlock").WillReturnResult(sqlmock.NewResult(0, 0))
 
-	r := NewMigrationRunner(db, "schema_migrations")
+	r, err := NewMigrationRunner(db, "schema_migrations")
+	if err != nil {
+		t.Fatal(err)
+	}
 	scripts := []MigrationScript{
 		{Version: 1, Description: "create_users", UpSQL: "CREATE TABLE users (id BIGINT);"}, // no DownSQL
 	}
-	err := r.Rollback(context.Background(), scripts, 1)
-	if err == nil {
+	rbErr := r.Rollback(context.Background(), scripts, 1)
+	if rbErr == nil {
 		t.Error("expected error when down SQL is missing")
 	}
 }
@@ -228,7 +243,10 @@ func TestMigrationRunner_Status(t *testing.T) {
 	mock.ExpectQuery("SELECT version, applied_at, checksum FROM schema_migrations").
 		WillReturnRows(rows)
 
-	r := NewMigrationRunner(db, "schema_migrations")
+	r, err := NewMigrationRunner(db, "schema_migrations")
+	if err != nil {
+		t.Fatal(err)
+	}
 	scripts := []MigrationScript{
 		{Version: 1, UpSQL: "SELECT 1;"},
 		{Version: 2, UpSQL: "SELECT 2;"},
@@ -257,7 +275,10 @@ func TestMigrationRunner_Status_AllPending(t *testing.T) {
 	mock.ExpectQuery("SELECT version, applied_at, checksum FROM schema_migrations").
 		WillReturnRows(sqlmock.NewRows([]string{"version", "applied_at", "checksum"}))
 
-	r := NewMigrationRunner(db, "schema_migrations")
+	r, err := NewMigrationRunner(db, "schema_migrations")
+	if err != nil {
+		t.Fatal(err)
+	}
 	scripts := []MigrationScript{
 		{Version: 1, UpSQL: "SELECT 1;"},
 		{Version: 2, UpSQL: "SELECT 2;"},

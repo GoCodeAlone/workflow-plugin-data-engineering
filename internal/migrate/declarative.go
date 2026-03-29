@@ -14,6 +14,32 @@ import (
 // validIdentifierRe matches safe SQL identifiers.
 var validIdentifierRe = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 
+// validSQLTypeRe matches safe SQL column types (e.g., bigint, varchar(255), timestamptz, numeric(10,2)).
+var validSQLTypeRe = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_ ]*(\(\d+(,\s*\d+)?\))?(\[\])?$`)
+
+// validSQLDefaultRe matches safe SQL default values: numeric literals, quoted strings, function calls like now().
+var validSQLDefaultRe = regexp.MustCompile(`^(\d+(\.\d+)?|'[^']*'|[a-zA-Z_][a-zA-Z0-9_]*\(\)|true|false|NULL)$`)
+
+func validateSQLType(t string) error {
+	if t == "" {
+		return fmt.Errorf("column type must not be empty")
+	}
+	if !validSQLTypeRe.MatchString(t) {
+		return fmt.Errorf("column type %q is invalid", t)
+	}
+	return nil
+}
+
+func validateSQLDefault(d string) error {
+	if d == "" {
+		return nil
+	}
+	if !validSQLDefaultRe.MatchString(d) {
+		return fmt.Errorf("column default %q is invalid (must be a literal, quoted string, or simple function call)", d)
+	}
+	return nil
+}
+
 func validateIdentifier(id string) error {
 	if id == "" {
 		return fmt.Errorf("identifier must not be empty")
@@ -187,7 +213,12 @@ func DiffSchema(desired, live SchemaDefinition) (MigrationPlan, error) {
 			plan.Changes = append(plan.Changes, SchemaChange{
 				Type:        changeType,
 				Description: fmt.Sprintf("change %s.%s type from %s to %s", desired.Table, dc.Name, lc.Type, dc.Type),
-				SQL:         fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE %s;", desired.Table, dc.Name, dc.Type),
+				SQL: func() string {
+					if err := validateSQLType(dc.Type); err != nil {
+						return fmt.Sprintf("-- INVALID TYPE: %s", dc.Type)
+					}
+					return fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE %s;", desired.Table, dc.Name, dc.Type)
+				}(),
 				Breaking:    breaking,
 			})
 		}
@@ -273,6 +304,12 @@ func buildCreateTable(def SchemaDefinition) (string, error) {
 func buildColumnDef(c ColumnDef) (string, error) {
 	if err := validateIdentifier(c.Name); err != nil {
 		return "", err
+	}
+	if err := validateSQLType(c.Type); err != nil {
+		return "", fmt.Errorf("column %q: %w", c.Name, err)
+	}
+	if err := validateSQLDefault(c.Default); err != nil {
+		return "", fmt.Errorf("column %q: %w", c.Name, err)
 	}
 	parts := []string{c.Name, c.Type}
 	if !c.Nullable && !c.PrimaryKey {

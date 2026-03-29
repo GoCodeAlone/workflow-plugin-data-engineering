@@ -240,7 +240,10 @@ func (s *MigrateRunStep) Execute(ctx context.Context, _ map[string]any, _ map[st
 		}}, nil
 	}
 
-	runner := NewMigrationRunner(exec, mod.LockTable())
+	runner, err := NewMigrationRunner(exec, mod.LockTable())
+	if err != nil {
+		return nil, fmt.Errorf("step %q: %w", s.name, err)
+	}
 	if err := runner.Apply(ctx, []MigrationScript{*script}); err != nil {
 		return nil, fmt.Errorf("step.migrate_run %q: %w", s.name, err)
 	}
@@ -280,7 +283,10 @@ func (s *MigrateRollbackStep) Execute(ctx context.Context, _ map[string]any, _ m
 		}}, nil
 	}
 
-	runner := NewMigrationRunner(exec, mod.LockTable())
+	runner, err := NewMigrationRunner(exec, mod.LockTable())
+	if err != nil {
+		return nil, fmt.Errorf("step %q: %w", s.name, err)
+	}
 
 	// Get state before rollback.
 	scripts := mod.Scripts()
@@ -331,7 +337,10 @@ func (s *MigrateStatusStep) Execute(ctx context.Context, _ map[string]any, _ map
 		}}, nil
 	}
 
-	runner := NewMigrationRunner(exec, mod.LockTable())
+	runner, err := NewMigrationRunner(exec, mod.LockTable())
+	if err != nil {
+		return nil, fmt.Errorf("step %q: %w", s.name, err)
+	}
 	scripts := mod.Scripts()
 	state, err := runner.Status(ctx, scripts)
 	if err != nil {
