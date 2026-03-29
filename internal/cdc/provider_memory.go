@@ -26,6 +26,8 @@ type memorySource struct {
 	events        chan map[string]any
 	cancel        context.CancelFunc
 	done          chan struct{}
+	lagBytes      int64
+	lagSeconds    int64
 }
 
 // NewMemoryProvider creates a new MemoryProvider.
@@ -95,11 +97,28 @@ func (p *MemoryProvider) Status(_ context.Context, sourceID string) (*CDCStatus,
 	src.mu.RLock()
 	defer src.mu.RUnlock()
 	return &CDCStatus{
-		SourceID:  sourceID,
-		State:     src.state,
-		Provider:  "memory",
-		LastEvent: src.lastEvent,
+		SourceID:   sourceID,
+		State:      src.state,
+		Provider:   "memory",
+		LastEvent:  src.lastEvent,
+		LagBytes:   src.lagBytes,
+		LagSeconds: src.lagSeconds,
 	}, nil
+}
+
+// SetLag configures simulated CDC lag on a running memory source (for backpressure tests).
+func (p *MemoryProvider) SetLag(sourceID string, lagBytes, lagSeconds int64) error {
+	p.mu.RLock()
+	src, exists := p.sources[sourceID]
+	p.mu.RUnlock()
+	if !exists {
+		return fmt.Errorf("memory CDC provider: source %q not found", sourceID)
+	}
+	src.mu.Lock()
+	src.lagBytes = lagBytes
+	src.lagSeconds = lagSeconds
+	src.mu.Unlock()
+	return nil
 }
 
 // Snapshot triggers a synthetic snapshot by emitting a snapshot_started event.

@@ -129,6 +129,9 @@ func (p *DebeziumProvider) Status(ctx context.Context, sourceID string) (*CDCSta
 		Tasks []struct {
 			State string `json:"state"`
 		} `json:"tasks"`
+		// Optional lag metrics (non-standard extension; populated when available).
+		LagBytes   int64 `json:"lag_bytes"`
+		LagSeconds int64 `json:"lag_seconds"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("debezium CDC provider: status %q: parse response: %w", sourceID, err)
@@ -146,10 +149,52 @@ func (p *DebeziumProvider) Status(ctx context.Context, sourceID string) (*CDCSta
 	}
 
 	return &CDCStatus{
-		SourceID: sourceID,
-		State:    state,
-		Provider: "debezium",
+		SourceID:   sourceID,
+		State:      state,
+		Provider:   "debezium",
+		LagBytes:   result.LagBytes,
+		LagSeconds: result.LagSeconds,
 	}, nil
+}
+
+// PauseSource pauses a Debezium connector via PUT /connectors/{name}/pause.
+func (p *DebeziumProvider) PauseSource(ctx context.Context, sourceID string) error {
+	p.mu.RLock()
+	conn, exists := p.connectors[sourceID]
+	p.mu.RUnlock()
+	if !exists {
+		return fmt.Errorf("debezium CDC provider: connector %q not found", sourceID)
+	}
+	url := conn.connectBaseURL + "/connectors/" + p.connectorName(sourceID) + "/pause"
+	resp, err := p.doRequest(ctx, http.MethodPut, url, nil)
+	if err != nil {
+		return fmt.Errorf("debezium CDC provider: pause %q: %w", sourceID, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("debezium CDC provider: pause %q: HTTP %d", sourceID, resp.StatusCode)
+	}
+	return nil
+}
+
+// ResumeSource resumes a paused Debezium connector via PUT /connectors/{name}/resume.
+func (p *DebeziumProvider) ResumeSource(ctx context.Context, sourceID string) error {
+	p.mu.RLock()
+	conn, exists := p.connectors[sourceID]
+	p.mu.RUnlock()
+	if !exists {
+		return fmt.Errorf("debezium CDC provider: connector %q not found", sourceID)
+	}
+	url := conn.connectBaseURL + "/connectors/" + p.connectorName(sourceID) + "/resume"
+	resp, err := p.doRequest(ctx, http.MethodPut, url, nil)
+	if err != nil {
+		return fmt.Errorf("debezium CDC provider: resume %q: %w", sourceID, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("debezium CDC provider: resume %q: HTTP %d", sourceID, resp.StatusCode)
+	}
+	return nil
 }
 
 // Snapshot triggers a full re-snapshot by updating the connector's snapshot.mode

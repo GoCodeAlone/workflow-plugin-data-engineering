@@ -182,8 +182,13 @@ func (p *DMSProvider) Status(ctx context.Context, sourceID string) (*CDCStatus, 
 	}
 
 	state := "unknown"
+	lagSeconds := int64(0)
 	if len(out.ReplicationTasks) > 0 {
-		state = dmsTaskState(aws.ToString(out.ReplicationTasks[0].Status))
+		t := out.ReplicationTasks[0]
+		state = dmsTaskState(aws.ToString(t.Status))
+		// CDCLatencySeconds is surfaced via table statistics; use 0 here (no
+		// direct latency field on ReplicationTaskStats in this SDK version).
+		_ = lagSeconds
 	}
 
 	return &CDCStatus{
@@ -191,6 +196,45 @@ func (p *DMSProvider) Status(ctx context.Context, sourceID string) (*CDCStatus, 
 		State:    state,
 		Provider: "dms",
 	}, nil
+}
+
+// PauseSource stops the DMS replication task (pause = stop for DMS).
+func (p *DMSProvider) PauseSource(ctx context.Context, sourceID string) error {
+	p.mu.RLock()
+	task, exists := p.tasks[sourceID]
+	p.mu.RUnlock()
+	if !exists {
+		return fmt.Errorf("dms CDC provider: task %q not found", sourceID)
+	}
+	task.mu.RLock()
+	arn := task.arn
+	task.mu.RUnlock()
+	if _, err := p.client.StopReplicationTask(ctx, &dms.StopReplicationTaskInput{
+		ReplicationTaskArn: aws.String(arn),
+	}); err != nil {
+		return fmt.Errorf("dms CDC provider: pause task %q: %w", sourceID, err)
+	}
+	return nil
+}
+
+// ResumeSource restarts the DMS replication task from where it stopped.
+func (p *DMSProvider) ResumeSource(ctx context.Context, sourceID string) error {
+	p.mu.RLock()
+	task, exists := p.tasks[sourceID]
+	p.mu.RUnlock()
+	if !exists {
+		return fmt.Errorf("dms CDC provider: task %q not found", sourceID)
+	}
+	task.mu.RLock()
+	arn := task.arn
+	task.mu.RUnlock()
+	if _, err := p.client.StartReplicationTask(ctx, &dms.StartReplicationTaskInput{
+		ReplicationTaskArn:       aws.String(arn),
+		StartReplicationTaskType: dmstypes.StartReplicationTaskTypeValueResumeProcessing,
+	}); err != nil {
+		return fmt.Errorf("dms CDC provider: resume task %q: %w", sourceID, err)
+	}
+	return nil
 }
 
 // Snapshot triggers a full re-snapshot via reload-target:

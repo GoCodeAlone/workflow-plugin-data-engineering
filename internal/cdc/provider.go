@@ -28,11 +28,13 @@ type EventHandler func(sourceID string, event map[string]any) error
 
 // CDCStatus describes the current state of a CDC stream.
 type CDCStatus struct {
-	SourceID  string `json:"source_id"           yaml:"source_id"`
-	State     string `json:"state"               yaml:"state"`
-	Provider  string `json:"provider"            yaml:"provider"`
-	LastEvent string `json:"last_event"          yaml:"last_event"`
-	Error     string `json:"error,omitempty"     yaml:"error,omitempty"`
+	SourceID   string `json:"source_id"              yaml:"source_id"`
+	State      string `json:"state"                  yaml:"state"`
+	Provider   string `json:"provider"               yaml:"provider"`
+	LastEvent  string `json:"last_event"             yaml:"last_event"`
+	Error      string `json:"error,omitempty"        yaml:"error,omitempty"`
+	LagBytes   int64  `json:"lag_bytes,omitempty"    yaml:"lag_bytes,omitempty"`
+	LagSeconds int64  `json:"lag_seconds,omitempty"  yaml:"lag_seconds,omitempty"`
 }
 
 // SchemaVersion describes a schema change event for a table.
