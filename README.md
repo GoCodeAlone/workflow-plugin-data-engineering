@@ -1034,4 +1034,4 @@ go test ./... -race
 
 ## License
 
-Commercial - GoCodeAlone
+MIT - see [LICENSE](LICENSE)

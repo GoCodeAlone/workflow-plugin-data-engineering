@@ -1,49 +1,21 @@
-GoCodeAlone Commercial Software License
-Copyright (c) 2026 GoCodeAlone. All rights reserved.
+MIT License
 
-1. GRANT OF LICENSE
-   This software and associated documentation files (the "Software") are
-   proprietary to GoCodeAlone. Subject to the terms of a separate commercial
-   license agreement, GoCodeAlone grants you a limited, non-exclusive,
-   non-transferable license to use the Software solely for your internal
-   business purposes.
+Copyright (c) 2026 GoCodeAlone
 
-2. RESTRICTIONS
-   You may not, without prior written consent from GoCodeAlone:
-   (a) copy, modify, or create derivative works of the Software;
-   (b) distribute, sublicense, lease, rent, or lend the Software to any
-       third party;
-   (c) reverse engineer, decompile, or disassemble the Software;
-   (d) remove or alter any proprietary notices, labels, or marks on the
-       Software.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-3. OWNERSHIP
-   GoCodeAlone retains all right, title, and interest in and to the Software,
-   including all intellectual property rights. No rights are granted to you
-   other than as expressly set forth herein.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-4. CONFIDENTIALITY
-   The Software and its source code are confidential and proprietary. You
-   agree to protect the confidentiality of the Software using at least the
-   same degree of care you use for your own confidential information.
-
-5. NO WARRANTY
-   THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
-
-6. LIMITATION OF LIABILITY
-   IN NO EVENT SHALL GOCODEALONE BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
-   SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING OUT OF OR RELATED TO
-   YOUR USE OF THE SOFTWARE, REGARDLESS OF THE THEORY OF LIABILITY.
-
-7. TERMINATION
-   This license is effective until terminated. GoCodeAlone may terminate this
-   license at any time if you breach any of its terms. Upon termination, you
-   must destroy all copies of the Software in your possession.
-
-8. GOVERNING LAW
-   This license shall be governed by and construed in accordance with the laws
-   of the United States, without regard to conflict of law principles.
-
-For commercial licensing inquiries, contact: codingsloth@pm.me
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

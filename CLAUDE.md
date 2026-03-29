@@ -28,7 +28,7 @@ internal/
   plugin.go         — PluginProvider, ModuleProvider, StepProvider, TriggerProvider, SchemaProvider
   cdc/              — CDC provider interface + Bento/Debezium/DMS implementations
   tenancy/          — Multi-tenant data isolation (schema/database strategies)
-plugin.json         — Plugin manifest (private, Commercial, self-hosted)
+plugin.json         — Plugin manifest (public, MIT)
 .goreleaser.yml     — GoReleaser v2 config (linux+darwin, amd64+arm64, CGO_ENABLED=0)
 ```
 
@@ -56,7 +56,7 @@ plugin.json         — Plugin manifest (private, Commercial, self-hosted)
 - Error messages include the module/step name.
 - SDK import: `sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"`
 - Handshake magic: `WORKFLOW_PLUGIN=workflow-external-plugin-v1`
-- CI uses self-hosted runners with `RELEASES_TOKEN` secret for private module access.
+- CI uses ubuntu-latest runners with `RELEASES_TOKEN` secret for private dependency access.
 - `CGO_ENABLED=0` for all builds.
 
 ## Adding a New Module Type
