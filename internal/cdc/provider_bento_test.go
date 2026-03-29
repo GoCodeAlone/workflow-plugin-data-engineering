@@ -2,9 +2,7 @@ package cdc
 
 import (
 	"context"
-	"sync"
 	"testing"
-	"time"
 )
 
 // TestBentoProvider_BuildConfig verifies that the config generator produces valid YAML
@@ -84,88 +82,150 @@ func TestBentoProvider_BuildConfig(t *testing.T) {
 	}
 }
 
-// TestBentoProvider_StartStop verifies that the BentoProvider can start and stop a real
-// Bento stream. We use the "generate" input (built-in Bento test data generator) to avoid
-// needing any real database.
-func TestBentoProvider_StartStop(t *testing.T) {
+// TestBentoProvider_Connect_GeneratesConfig verifies that Connect generates YAML
+// and stores the config for delegation.
+func TestBentoProvider_Connect_GeneratesConfig(t *testing.T) {
+	p := newBentoProvider()
 	ctx := context.Background()
 
-	bs := &bentoStream{
-		config: SourceConfig{SourceID: "test-stream"},
-		done:   make(chan struct{}),
-		state:  "starting",
+	cfg := SourceConfig{
+		SourceID:   "pg-test",
+		SourceType: "postgres",
+		Connection: "postgres://localhost/mydb",
+		Tables:     []string{"public.events"},
+		Options:    map[string]any{"bento_module": "cdc_bento_stream"},
 	}
 
-	// Use Bento's "generate" input via AddInputYAML (pure components imported in testmain_test.go).
-	// We pass just the input fragment (not a full config); the consumer output is added by start().
-	generateYAML := `generate:
-  mapping: 'root = {"op": "INSERT", "table": "test"}'
-  interval: "20ms"
-  count: 100`
-
-	var mu sync.Mutex
-	var events []map[string]any
-
-	bs.handler = func(_ string, event map[string]any) error {
-		mu.Lock()
-		events = append(events, event)
-		mu.Unlock()
-		return nil
+	if err := p.Connect(ctx, cfg); err != nil {
+		t.Fatalf("Connect: %v", err)
 	}
 
-	if err := bs.start(ctx, generateYAML); err != nil {
-		t.Fatalf("start: %v", err)
+	yaml, err := p.ConfigYAML("pg-test")
+	if err != nil {
+		t.Fatalf("ConfigYAML: %v", err)
+	}
+	if len(yaml) == 0 {
+		t.Error("expected non-empty YAML after Connect")
 	}
 
-	// Wait for at least 5 events (5 × 20ms = 100ms, well within deadline).
-	deadline := time.Now().Add(5 * time.Second)
-	for time.Now().Before(deadline) {
-		mu.Lock()
-		n := len(events)
-		mu.Unlock()
-		if n >= 5 {
-			break
-		}
-		time.Sleep(20 * time.Millisecond)
-	}
-
-	stopCtx, stopCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer stopCancel()
-	if err := bs.stop(stopCtx); err != nil {
-		// Context deadline exceeded during shutdown is acceptable — the stream was stopped.
-		t.Logf("stop (non-fatal): %v", err)
-	}
-
-	mu.Lock()
-	defer mu.Unlock()
-	if len(events) < 5 {
-		t.Errorf("expected at least 5 events, got %d", len(events))
-	}
-	if events[0]["op"] != "INSERT" {
-		t.Errorf("expected op=INSERT, got %v", events[0]["op"])
+	// Verify bento_module reference is stored.
+	p.mu.RLock()
+	entry := p.configs["pg-test"]
+	p.mu.RUnlock()
+	if entry.bentoModule != "cdc_bento_stream" {
+		t.Errorf("bentoModule: got %q, want %q", entry.bentoModule, "cdc_bento_stream")
 	}
 }
 
-// TestBentoProvider_ConnectDuplicate verifies that connecting with the same source ID twice returns an error.
+// TestBentoProvider_Status_Configured verifies Status returns "configured" after Connect.
+func TestBentoProvider_Status_Configured(t *testing.T) {
+	p := newBentoProvider()
+	ctx := context.Background()
+
+	cfg := SourceConfig{
+		SourceID:   "status-test",
+		SourceType: "postgres",
+		Connection: "postgres://localhost/db",
+	}
+	if err := p.Connect(ctx, cfg); err != nil {
+		t.Fatalf("Connect: %v", err)
+	}
+
+	status, err := p.Status(ctx, "status-test")
+	if err != nil {
+		t.Fatalf("Status: %v", err)
+	}
+	if status.State != "configured" {
+		t.Errorf("State: got %q, want %q", status.State, "configured")
+	}
+	if status.Provider != "bento" {
+		t.Errorf("Provider: got %q, want %q", status.Provider, "bento")
+	}
+}
+
+// TestBentoProvider_Disconnect verifies Disconnect removes the configuration.
+func TestBentoProvider_Disconnect(t *testing.T) {
+	p := newBentoProvider()
+	ctx := context.Background()
+
+	cfg := SourceConfig{
+		SourceID:   "disc-test",
+		SourceType: "mysql",
+		Connection: "user:pass@tcp(localhost:3306)/db",
+	}
+	if err := p.Connect(ctx, cfg); err != nil {
+		t.Fatalf("Connect: %v", err)
+	}
+	if err := p.Disconnect(ctx, "disc-test"); err != nil {
+		t.Fatalf("Disconnect: %v", err)
+	}
+
+	// Status should return not_found after disconnect.
+	status, err := p.Status(ctx, "disc-test")
+	if err != nil {
+		t.Fatalf("Status after Disconnect: %v", err)
+	}
+	if status.State != "not_found" {
+		t.Errorf("State after Disconnect: got %q, want %q", status.State, "not_found")
+	}
+
+	// Second disconnect should error.
+	if err := p.Disconnect(ctx, "disc-test"); err == nil {
+		t.Error("expected error on second Disconnect, got nil")
+	}
+}
+
+// TestBentoProvider_Snapshot_RegeneratesConfig verifies Snapshot regenerates YAML
+// with updated tables.
+func TestBentoProvider_Snapshot_RegeneratesConfig(t *testing.T) {
+	p := newBentoProvider()
+	ctx := context.Background()
+
+	cfg := SourceConfig{
+		SourceID:   "snap-test",
+		SourceType: "postgres",
+		Connection: "postgres://localhost/db",
+		Tables:     []string{"public.users"},
+	}
+	if err := p.Connect(ctx, cfg); err != nil {
+		t.Fatalf("Connect: %v", err)
+	}
+
+	origYAML, _ := p.ConfigYAML("snap-test")
+
+	// Snapshot with new tables should regenerate the YAML.
+	if err := p.Snapshot(ctx, "snap-test", []string{"public.orders"}); err != nil {
+		t.Fatalf("Snapshot: %v", err)
+	}
+
+	newYAML, _ := p.ConfigYAML("snap-test")
+	if newYAML == origYAML {
+		t.Error("expected YAML to change after Snapshot with different tables")
+	}
+
+	// Status should be "snapshot".
+	status, _ := p.Status(ctx, "snap-test")
+	if status.State != "snapshot" {
+		t.Errorf("State after Snapshot: got %q, want %q", status.State, "snapshot")
+	}
+}
+
+// TestBentoProvider_ConnectDuplicate verifies that connecting with the same source ID
+// twice returns an error.
 func TestBentoProvider_ConnectDuplicate(t *testing.T) {
 	p := newBentoProvider()
 	ctx := context.Background()
 
 	cfg := SourceConfig{
-		Provider:   "bento",
 		SourceID:   "dup-src",
 		SourceType: "postgres",
 		Connection: "postgres://localhost/db",
 		Tables:     []string{"users"},
 	}
 
-	// First connect will fail trying to build a stream against a non-existent database,
-	// so we inject the stream directly.
-	p.mu.Lock()
-	p.streams[cfg.SourceID] = &bentoStream{config: cfg, state: "running", done: make(chan struct{})}
-	p.mu.Unlock()
-
-	// Duplicate connect must fail with the stream already registered.
+	if err := p.Connect(ctx, cfg); err != nil {
+		t.Fatalf("first Connect: %v", err)
+	}
 	if err := p.Connect(ctx, cfg); err == nil {
 		t.Fatal("expected error on duplicate Connect")
 	}
@@ -181,50 +241,5 @@ func TestBentoProvider_StatusNotFound(t *testing.T) {
 	}
 	if status.State != "not_found" {
 		t.Errorf("expected not_found, got %q", status.State)
-	}
-}
-
-// TestBentoProvider_RegisterEventHandler verifies handler registration against a stream.
-func TestBentoProvider_RegisterEventHandler(t *testing.T) {
-	p := newBentoProvider()
-
-	bs := &bentoStream{
-		config: SourceConfig{SourceID: "handler-src"},
-		done:   make(chan struct{}),
-		state:  "running",
-	}
-	p.mu.Lock()
-	p.streams["handler-src"] = bs
-	p.mu.Unlock()
-
-	var called bool
-	var mu sync.Mutex
-	handler := EventHandler(func(_ string, _ map[string]any) error {
-		mu.Lock()
-		called = true
-		mu.Unlock()
-		return nil
-	})
-
-	if err := p.RegisterEventHandler("handler-src", handler); err != nil {
-		t.Fatalf("RegisterEventHandler: %v", err)
-	}
-
-	// Manually invoke the registered handler.
-	bs.mu.RLock()
-	h := bs.handler
-	bs.mu.RUnlock()
-
-	if h == nil {
-		t.Fatal("handler was not registered")
-	}
-	if err := h("handler-src", map[string]any{"test": true}); err != nil {
-		t.Fatalf("handler returned error: %v", err)
-	}
-
-	mu.Lock()
-	defer mu.Unlock()
-	if !called {
-		t.Fatal("handler was not called")
 	}
 }
