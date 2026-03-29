@@ -8,6 +8,7 @@ import (
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/cdc"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/graph"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/lakehouse"
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/migrate"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/quality"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/tenancy"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/timeseries"
@@ -59,6 +60,8 @@ func (p *dataEngineeringPlugin) ModuleTypes() []string {
 		"catalog.openmetadata",
 		// Data Quality (Phase 3)
 		"quality.checks",
+		// Schema Migration (Phase 3)
+		"migrate.schema",
 	}
 }
 
@@ -93,6 +96,8 @@ func (p *dataEngineeringPlugin) CreateModule(typeName, name string, config map[s
 		return catalog.NewOpenMetadataModule(name, config)
 	case "quality.checks":
 		return quality.NewChecksModule(name, config)
+	case "migrate.schema":
+		return migrate.NewSchemaModule(name, config)
 	default:
 		return nil, fmt.Errorf("data-engineering plugin: unknown module type %q", typeName)
 	}
@@ -153,6 +158,12 @@ func (p *dataEngineeringPlugin) StepTypes() []string {
 		"step.quality_dbt_test",
 		"step.quality_soda_check",
 		"step.quality_ge_validate",
+		// Schema Migration steps (Phase 3)
+		"step.migrate_plan",
+		"step.migrate_apply",
+		"step.migrate_run",
+		"step.migrate_rollback",
+		"step.migrate_status",
 	}
 }
 
@@ -245,6 +256,16 @@ func (p *dataEngineeringPlugin) CreateStep(typeName, name string, config map[str
 		return quality.NewSodaCheckStep(name, config)
 	case "step.quality_ge_validate":
 		return quality.NewGEValidateStep(name, config)
+	case "step.migrate_plan":
+		return migrate.NewMigratePlanStep(name, config)
+	case "step.migrate_apply":
+		return migrate.NewMigrateApplyStep(name, config)
+	case "step.migrate_run":
+		return migrate.NewMigrateRunStep(name, config)
+	case "step.migrate_rollback":
+		return migrate.NewMigrateRollbackStep(name, config)
+	case "step.migrate_status":
+		return migrate.NewMigrateStatusStep(name, config)
 	default:
 		return nil, fmt.Errorf("data-engineering plugin: unknown step type %q", typeName)
 	}
@@ -290,6 +311,7 @@ func (p *dataEngineeringPlugin) ModuleSchemas() []sdk.ModuleSchemaData {
 	schemas = append(schemas, graph.GraphModuleSchemas()...)
 	schemas = append(schemas, phase3CatalogSchemas()...)
 	schemas = append(schemas, qualityModuleSchemas()...)
+	schemas = append(schemas, migrateModuleSchemas()...)
 	return schemas
 }
 
@@ -374,6 +396,24 @@ func qualityModuleSchemas() []sdk.ModuleSchemaData {
 				{Name: "provider", Type: "string", Description: "Check provider: builtin, dbt, soda, or great_expectations", Required: false, Options: []string{"builtin", "dbt", "soda", "great_expectations"}},
 				{Name: "contractsDir", Type: "string", Description: "Directory containing YAML data contracts", Required: false},
 				{Name: "database", Type: "string", Description: "Referenced database module name for SQL checks", Required: false},
+			},
+		},
+	}
+}
+
+func migrateModuleSchemas() []sdk.ModuleSchemaData {
+	return []sdk.ModuleSchemaData{
+		{
+			Type:        "migrate.schema",
+			Label:       "Schema Migration",
+			Category:    "Data Engineering",
+			Description: "Declarative schema differ and scripted migration runner",
+			ConfigFields: []sdk.ConfigField{
+				{Name: "strategy", Type: "string", Description: "Migration strategy: declarative, scripted, or both", Required: true, Options: []string{"declarative", "scripted", "both"}},
+				{Name: "target", Type: "string", Description: "Target database module name", Required: false},
+				{Name: "migrationsDir", Type: "string", Description: "Directory containing NNN_description.{up,down}.sql files", Required: false},
+				{Name: "lockTable", Type: "string", Description: "Migration state tracking table (default: schema_migrations)", Required: false},
+				{Name: "onBreakingChange", Type: "string", Description: "Policy for breaking changes: block, warn, or blue_green", Required: false, Options: []string{"block", "warn", "blue_green"}},
 			},
 		},
 	}
