@@ -6,6 +6,7 @@ import (
 
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/catalog"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/cdc"
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/graph"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/lakehouse"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/tenancy"
 	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/timeseries"
@@ -50,6 +51,8 @@ func (p *dataEngineeringPlugin) ModuleTypes() []string {
 		"timeseries.druid",
 		// Catalog (Phase 2)
 		"catalog.schema_registry",
+		// Graph (Phase 3)
+		"graph.neo4j",
 	}
 }
 
@@ -76,6 +79,8 @@ func (p *dataEngineeringPlugin) CreateModule(typeName, name string, config map[s
 		return timeseries.NewDruidModule(name, config)
 	case "catalog.schema_registry":
 		return catalog.NewSchemaRegistryModule(name, config)
+	case "graph.neo4j":
+		return graph.NewNeo4jModule(name, config)
 	default:
 		return nil, fmt.Errorf("data-engineering plugin: unknown module type %q", typeName)
 	}
@@ -117,6 +122,12 @@ func (p *dataEngineeringPlugin) StepTypes() []string {
 		// Schema Registry steps
 		"step.schema_register",
 		"step.schema_validate",
+		// Graph steps (Phase 3)
+		"step.graph_query",
+		"step.graph_write",
+		"step.graph_import",
+		"step.graph_extract_entities",
+		"step.graph_link",
 	}
 }
 
@@ -177,6 +188,16 @@ func (p *dataEngineeringPlugin) CreateStep(typeName, name string, config map[str
 		return catalog.NewSchemaRegisterStep(name, config)
 	case "step.schema_validate":
 		return catalog.NewSchemaValidateStep(name, config)
+	case "step.graph_query":
+		return graph.NewGraphQueryStep(name, config)
+	case "step.graph_write":
+		return graph.NewGraphWriteStep(name, config)
+	case "step.graph_import":
+		return graph.NewGraphImportStep(name, config)
+	case "step.graph_extract_entities":
+		return graph.NewGraphExtractEntitiesStep(name, config)
+	case "step.graph_link":
+		return graph.NewGraphLinkStep(name, config)
 	default:
 		return nil, fmt.Errorf("data-engineering plugin: unknown step type %q", typeName)
 	}
@@ -219,6 +240,7 @@ func (p *dataEngineeringPlugin) ModuleSchemas() []sdk.ModuleSchemaData {
 	}
 	schemas = append(schemas, lakehouse.LakehouseModuleSchemas()...)
 	schemas = append(schemas, phase2ModuleSchemas()...)
+	schemas = append(schemas, graph.GraphModuleSchemas()...)
 	return schemas
 }
 

@@ -105,16 +105,16 @@ func TestPlugin_AllStepTypes(t *testing.T) {
 			t.Errorf("missing step type %q in StepTypes()", typ)
 		}
 	}
-	if len(types) != 27 {
-		t.Errorf("expected 27 step types, got %d", len(types))
+	if len(types) != 32 {
+		t.Errorf("expected 32 step types, got %d", len(types))
 	}
 }
 
 func TestPlugin_AllSchemas(t *testing.T) {
 	p := newPlugin(t)
 	schemas := p.ModuleSchemas()
-	if len(schemas) != 10 {
-		t.Fatalf("expected 10 schemas, got %d", len(schemas))
+	if len(schemas) != 11 {
+		t.Fatalf("expected 11 schemas, got %d", len(schemas))
 	}
 	byType := make(map[string]sdk.ModuleSchemaData)
 	for _, s := range schemas {
