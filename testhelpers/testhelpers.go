@@ -95,6 +95,28 @@ func CatalogUnregisterModule(name string) { catalog.UnregisterCatalogModule(name
 // QualityUnregisterChecksModule removes a quality.checks module from the registry.
 func QualityUnregisterChecksModule(name string) { quality.UnregisterChecksModule(name) }
 
+// DBQuerier re-exports quality.DBQuerier so callers can implement it.
+type DBQuerier = quality.DBQuerier
+
+// QualitySetExecutor injects a DBQuerier into the named quality.checks module.
+// It is a no-op if the module is not found in the registry.
+func QualitySetExecutor(name string, exec DBQuerier) {
+	mod, err := quality.LookupChecksModule(name)
+	if err != nil {
+		return
+	}
+	mod.SetExecutor(exec)
+}
+
+// QualityNewModuleWithExecutor creates a quality.checks ChecksModule pre-wired with the
+// given executor and registers it under name. The caller must call
+// QualityUnregisterChecksModule(name) in t.Cleanup.
+func QualityNewModuleWithExecutor(name string, exec DBQuerier) error {
+	quality.UnregisterChecksModule(name)
+	mod := quality.NewChecksModuleWithExecutor(name, exec)
+	return quality.RegisterChecksModule(name, mod)
+}
+
 // ─── Migrate helpers ──────────────────────────────────────────────────────────
 
 // MigrateUnregisterModule removes a migrate.schema module from the registry.
