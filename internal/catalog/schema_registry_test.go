@@ -29,10 +29,7 @@ func (s *srTestServer) handle(path string, fn http.HandlerFunc) {
 }
 
 func (s *srTestServer) client() SchemaRegistryClient {
-	return &srHTTPClient{
-		endpoint:   s.srv.URL,
-		httpClient: s.srv.Client(),
-	}
+	return NewSchemaRegistryClient(s.srv.URL, "", "", 10*time.Second)
 }
 
 func srJSON(w http.ResponseWriter, v any) {
@@ -225,12 +222,7 @@ func TestSchemaRegistryClient_AuthHeader(t *testing.T) {
 		srJSON(w, []string{})
 	})
 
-	client := &srHTTPClient{
-		endpoint:   srv.srv.URL,
-		httpClient: srv.srv.Client(),
-		username:   "user1",
-		password:   "secret",
-	}
+	client := NewSchemaRegistryClient(srv.srv.URL, "user1", "secret", 10*time.Second)
 	_, err := client.ListSubjects(context.Background())
 	if err != nil {
 		t.Fatalf("ListSubjects: %v", err)
@@ -265,7 +257,7 @@ func TestSchemaRegistryModule_Init_Start(t *testing.T) {
 			DefaultCompatibility: "BACKWARD",
 		},
 		newClient: func(cfg SchemaRegistryConfig) SchemaRegistryClient {
-			return &srHTTPClient{endpoint: cfg.Endpoint, httpClient: srv.srv.Client()}
+			return NewSchemaRegistryClient(cfg.Endpoint, cfg.Username, cfg.Password, 10*time.Second)
 		},
 	}
 
@@ -316,7 +308,7 @@ func TestSchemaRegisterStep(t *testing.T) {
 		name:   "sr-reg-test",
 		config: SchemaRegistryConfig{Endpoint: srv.srv.URL},
 		newClient: func(cfg SchemaRegistryConfig) SchemaRegistryClient {
-			return &srHTTPClient{endpoint: cfg.Endpoint, httpClient: srv.srv.Client()}
+			return NewSchemaRegistryClient(cfg.Endpoint, cfg.Username, cfg.Password, 10*time.Second)
 		},
 	}
 	_ = m.Start(context.Background())
@@ -364,7 +356,7 @@ func TestSchemaValidateStep_Valid(t *testing.T) {
 		name:   "sr-valid-test",
 		config: SchemaRegistryConfig{Endpoint: srv.srv.URL},
 		newClient: func(cfg SchemaRegistryConfig) SchemaRegistryClient {
-			return &srHTTPClient{endpoint: cfg.Endpoint, httpClient: srv.srv.Client()}
+			return NewSchemaRegistryClient(cfg.Endpoint, cfg.Username, cfg.Password, 10*time.Second)
 		},
 	}
 	_ = m.Start(context.Background())
@@ -405,7 +397,7 @@ func TestSchemaValidateStep_Invalid(t *testing.T) {
 		name:   "sr-invalid-test",
 		config: SchemaRegistryConfig{Endpoint: srv.srv.URL},
 		newClient: func(cfg SchemaRegistryConfig) SchemaRegistryClient {
-			return &srHTTPClient{endpoint: cfg.Endpoint, httpClient: srv.srv.Client()}
+			return NewSchemaRegistryClient(cfg.Endpoint, cfg.Username, cfg.Password, 10*time.Second)
 		},
 	}
 	_ = m.Start(context.Background())
@@ -475,7 +467,7 @@ func TestSchemaRegistryClient_GetSchemaByVersion(t *testing.T) {
 func TestSchemaValidateStep_Avro(t *testing.T) {
 	avroSchema := `{"type":"record","name":"User","fields":[{"name":"id","type":"int"},{"name":"email","type":"string"}]}`
 
-	client := &srHTTPClient{} // direct validation — no HTTP needed
+	client := NewSchemaRegistryClient("http://unused", "", "", 0) // direct validation — no HTTP needed
 	def := SchemaDefinition{Schema: avroSchema, SchemaType: "AVRO"}
 
 	// Valid data.

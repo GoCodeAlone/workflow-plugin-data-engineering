@@ -9,10 +9,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/ident"
 )
-
-// validIdentifierRe matches safe SQL identifiers.
-var validIdentifierRe = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 
 // validSQLTypeRe matches safe SQL column types (e.g., bigint, varchar(255), timestamptz, numeric(10,2)).
 var validSQLTypeRe = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_ ]*(\(\d+(,\s*\d+)?\))?(\[\])?$`)
@@ -41,13 +39,7 @@ func validateSQLDefault(d string) error {
 }
 
 func validateIdentifier(id string) error {
-	if id == "" {
-		return fmt.Errorf("identifier must not be empty")
-	}
-	if !validIdentifierRe.MatchString(id) {
-		return fmt.Errorf("identifier %q is invalid (must start with a letter or underscore, followed by [a-zA-Z0-9_])", id)
-	}
-	return nil
+	return ident.Validate(id)
 }
 
 // SchemaDefinition describes the desired state of a database table.

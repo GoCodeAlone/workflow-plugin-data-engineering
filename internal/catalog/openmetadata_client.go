@@ -1,25 +1,24 @@
 package catalog
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/httpclient"
 )
 
 // OMTable represents a table entity in OpenMetadata.
 type OMTable struct {
-	ID          string            `json:"id,omitempty"`
-	Name        string            `json:"name"`
-	FullyQualifiedName string    `json:"fullyQualifiedName,omitempty"`
-	Description string            `json:"description,omitempty"`
-	Columns     []OMColumn        `json:"columns,omitempty"`
-	Tags        []OMTag           `json:"tags,omitempty"`
-	Owner       *OMEntityRef      `json:"owner,omitempty"`
+	ID                 string       `json:"id,omitempty"`
+	Name               string       `json:"name"`
+	FullyQualifiedName string       `json:"fullyQualifiedName,omitempty"`
+	Description        string       `json:"description,omitempty"`
+	Columns            []OMColumn   `json:"columns,omitempty"`
+	Tags               []OMTag      `json:"tags,omitempty"`
+	Owner              *OMEntityRef `json:"owner,omitempty"`
 }
 
 // OMColumn is a single column in an OpenMetadata table.
@@ -47,8 +46,8 @@ type OMSearchResult struct {
 
 // OMLineageResult holds lineage information from OpenMetadata.
 type OMLineageResult struct {
-	FQN      string    `json:"fullyQualifiedName"`
-	Upstream []OMTable `json:"upstream,omitempty"`
+	FQN        string    `json:"fullyQualifiedName"`
+	Upstream   []OMTable `json:"upstream,omitempty"`
 	Downstream []OMTable `json:"downstream,omitempty"`
 }
 
@@ -64,67 +63,19 @@ type OpenMetadataClient interface {
 
 // omHTTPClient implements OpenMetadataClient via HTTP.
 type omHTTPClient struct {
-	endpoint   string
-	token      string
-	httpClient *http.Client
+	client *httpclient.Client
 }
 
 // NewOpenMetadataClient creates a new OpenMetadata HTTP client.
 func NewOpenMetadataClient(endpoint, token string, timeout time.Duration) OpenMetadataClient {
-	if timeout == 0 {
-		timeout = 30 * time.Second
-	}
 	return &omHTTPClient{
-		endpoint:   endpoint,
-		token:      token,
-		httpClient: &http.Client{Timeout: timeout},
+		client: httpclient.New(endpoint, httpclient.AuthConfig{Type: "bearer", Token: token}, timeout),
 	}
-}
-
-func (c *omHTTPClient) do(ctx context.Context, method, path string, body any) (*http.Response, error) {
-	var reqBody io.Reader
-	if body != nil {
-		b, err := json.Marshal(body)
-		if err != nil {
-			return nil, fmt.Errorf("openmetadata: marshal request: %w", err)
-		}
-		reqBody = bytes.NewReader(b)
-	}
-	req, err := http.NewRequestWithContext(ctx, method, c.endpoint+path, reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("openmetadata: create request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	if c.token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.token)
-	}
-	return c.httpClient.Do(req)
-}
-
-func (c *omHTTPClient) decodeResponse(resp *http.Response, out any) error {
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("openmetadata: read response: %w", err)
-	}
-	if resp.StatusCode >= 400 {
-		return fmt.Errorf("openmetadata: HTTP %d: %s", resp.StatusCode, string(body))
-	}
-	if out != nil && len(body) > 0 {
-		if err := json.Unmarshal(body, out); err != nil {
-			return fmt.Errorf("openmetadata: unmarshal response: %w", err)
-		}
-	}
-	return nil
 }
 
 func (c *omHTTPClient) GetTable(ctx context.Context, fqn string) (*OMTable, error) {
-	resp, err := c.do(ctx, http.MethodGet, "/api/v1/tables/name/"+url.PathEscape(fqn), nil)
-	if err != nil {
-		return nil, fmt.Errorf("openmetadata: GetTable: %w", err)
-	}
 	var table OMTable
-	if err := c.decodeResponse(resp, &table); err != nil {
+	if err := c.client.DoJSON(ctx, http.MethodGet, "/api/v1/tables/name/"+url.PathEscape(fqn), nil, &table); err != nil {
 		return nil, fmt.Errorf("openmetadata: GetTable: %w", err)
 	}
 	return &table, nil
@@ -132,10 +83,6 @@ func (c *omHTTPClient) GetTable(ctx context.Context, fqn string) (*OMTable, erro
 
 func (c *omHTTPClient) SearchTables(ctx context.Context, query string, limit int) (*OMSearchResult, error) {
 	path := fmt.Sprintf("/api/v1/search/query?q=%s&size=%d", url.QueryEscape(query), limit)
-	resp, err := c.do(ctx, http.MethodGet, path, nil)
-	if err != nil {
-		return nil, fmt.Errorf("openmetadata: SearchTables: %w", err)
-	}
 	var raw struct {
 		Hits struct {
 			Total struct {
@@ -146,7 +93,7 @@ func (c *omHTTPClient) SearchTables(ctx context.Context, query string, limit int
 			} `json:"hits"`
 		} `json:"hits"`
 	}
-	if err := c.decodeResponse(resp, &raw); err != nil {
+	if err := c.client.DoJSON(ctx, http.MethodGet, path, nil, &raw); err != nil {
 		return nil, fmt.Errorf("openmetadata: SearchTables: %w", err)
 	}
 	result := &OMSearchResult{Total: raw.Hits.Total.Value}
@@ -157,11 +104,10 @@ func (c *omHTTPClient) SearchTables(ctx context.Context, query string, limit int
 }
 
 func (c *omHTTPClient) CreateOrUpdateTable(ctx context.Context, table OMTable) error {
-	resp, err := c.do(ctx, http.MethodPut, "/api/v1/tables", table)
-	if err != nil {
+	if err := c.client.DoJSON(ctx, http.MethodPut, "/api/v1/tables", table, nil); err != nil {
 		return fmt.Errorf("openmetadata: CreateOrUpdateTable: %w", err)
 	}
-	return c.decodeResponse(resp, nil)
+	return nil
 }
 
 func (c *omHTTPClient) AddTag(ctx context.Context, fqn, tag string) error {
@@ -169,12 +115,10 @@ func (c *omHTTPClient) AddTag(ctx context.Context, fqn, tag string) error {
 	if err != nil {
 		return fmt.Errorf("openmetadata: AddTag: %w", err)
 	}
-	reqBody := []map[string]any{{"tagFQN": tag}}
-	resp, err := c.do(ctx, http.MethodPut, "/api/v1/tables/"+table.ID+"/tags", reqBody)
-	if err != nil {
+	if err := c.client.DoJSON(ctx, http.MethodPut, "/api/v1/tables/"+table.ID+"/tags", []map[string]any{{"tagFQN": tag}}, nil); err != nil {
 		return fmt.Errorf("openmetadata: AddTag: %w", err)
 	}
-	return c.decodeResponse(resp, nil)
+	return nil
 }
 
 func (c *omHTTPClient) SetOwner(ctx context.Context, fqn, owner string) error {
@@ -183,18 +127,13 @@ func (c *omHTTPClient) SetOwner(ctx context.Context, fqn, owner string) error {
 		return fmt.Errorf("openmetadata: SetOwner: %w", err)
 	}
 	table.Owner = &OMEntityRef{Name: owner, Type: "user"}
-	resp, err := c.do(ctx, http.MethodPut, "/api/v1/tables", table)
-	if err != nil {
+	if err := c.client.DoJSON(ctx, http.MethodPut, "/api/v1/tables", table, nil); err != nil {
 		return fmt.Errorf("openmetadata: SetOwner: %w", err)
 	}
-	return c.decodeResponse(resp, nil)
+	return nil
 }
 
 func (c *omHTTPClient) GetLineage(ctx context.Context, fqn string) (*OMLineageResult, error) {
-	resp, err := c.do(ctx, http.MethodGet, "/api/v1/lineage/table/name/"+url.PathEscape(fqn), nil)
-	if err != nil {
-		return nil, fmt.Errorf("openmetadata: GetLineage: %w", err)
-	}
 	var raw struct {
 		Entity struct {
 			FQN string `json:"fullyQualifiedName"`
@@ -203,7 +142,7 @@ func (c *omHTTPClient) GetLineage(ctx context.Context, fqn string) (*OMLineageRe
 			FQN string `json:"fullyQualifiedName"`
 		} `json:"nodes"`
 	}
-	if err := c.decodeResponse(resp, &raw); err != nil {
+	if err := c.client.DoJSON(ctx, http.MethodGet, "/api/v1/lineage/table/name/"+url.PathEscape(fqn), nil, &raw); err != nil {
 		return nil, fmt.Errorf("openmetadata: GetLineage: %w", err)
 	}
 	result := &OMLineageResult{FQN: raw.Entity.FQN}

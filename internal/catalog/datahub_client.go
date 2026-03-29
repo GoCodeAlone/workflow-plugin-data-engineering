@@ -1,13 +1,12 @@
 package catalog
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
+
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/httpclient"
 )
 
 // Dataset represents a dataset entity in DataHub.
@@ -68,65 +67,17 @@ type DataHubClient interface {
 
 // dhHTTPClient implements DataHubClient via HTTP.
 type dhHTTPClient struct {
-	endpoint   string
-	token      string
-	httpClient *http.Client
+	client *httpclient.Client
 }
 
 // NewDataHubClient creates a new DataHub HTTP client.
 func NewDataHubClient(endpoint, token string, timeout time.Duration) DataHubClient {
-	if timeout == 0 {
-		timeout = 30 * time.Second
-	}
 	return &dhHTTPClient{
-		endpoint:   endpoint,
-		token:      token,
-		httpClient: &http.Client{Timeout: timeout},
+		client: httpclient.New(endpoint, httpclient.AuthConfig{Type: "bearer", Token: token}, timeout),
 	}
-}
-
-func (c *dhHTTPClient) do(ctx context.Context, method, path string, body any) (*http.Response, error) {
-	var reqBody io.Reader
-	if body != nil {
-		b, err := json.Marshal(body)
-		if err != nil {
-			return nil, fmt.Errorf("datahub: marshal request: %w", err)
-		}
-		reqBody = bytes.NewReader(b)
-	}
-	req, err := http.NewRequestWithContext(ctx, method, c.endpoint+path, reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("datahub: create request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	if c.token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.token)
-	}
-	return c.httpClient.Do(req)
-}
-
-func (c *dhHTTPClient) decodeResponse(resp *http.Response, out any) error {
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("datahub: read response: %w", err)
-	}
-	if resp.StatusCode >= 400 {
-		return fmt.Errorf("datahub: HTTP %d: %s", resp.StatusCode, string(body))
-	}
-	if out != nil {
-		if err := json.Unmarshal(body, out); err != nil {
-			return fmt.Errorf("datahub: unmarshal response: %w", err)
-		}
-	}
-	return nil
 }
 
 func (c *dhHTTPClient) GetDataset(ctx context.Context, urn string) (*Dataset, error) {
-	resp, err := c.do(ctx, http.MethodGet, "/entities/v1/"+urn, nil)
-	if err != nil {
-		return nil, fmt.Errorf("datahub: GetDataset: %w", err)
-	}
 	var result struct {
 		URN    string `json:"urn"`
 		Entity struct {
@@ -138,7 +89,7 @@ func (c *dhHTTPClient) GetDataset(ctx context.Context, urn string) (*Dataset, er
 			} `json:"dataPlatformInstance"`
 		} `json:"entity"`
 	}
-	if err := c.decodeResponse(resp, &result); err != nil {
+	if err := c.client.DoJSON(ctx, http.MethodGet, "/entities/v1/"+urn, nil, &result); err != nil {
 		return nil, fmt.Errorf("datahub: GetDataset: %w", err)
 	}
 	return &Dataset{
@@ -154,20 +105,15 @@ func (c *dhHTTPClient) SearchDatasets(ctx context.Context, query string, start, 
 		"start": start,
 		"count": count,
 	}
-	resp, err := c.do(ctx, http.MethodPost, "/entities/v1/search", reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("datahub: SearchDatasets: %w", err)
-	}
 	var raw struct {
 		NumEntities int `json:"numEntities"`
 		From        int `json:"from"`
-		PageSize    int `json:"pageSize"`
 		Entities    []struct {
 			URN  string `json:"urn"`
 			Name string `json:"name"`
 		} `json:"entities"`
 	}
-	if err := c.decodeResponse(resp, &raw); err != nil {
+	if err := c.client.DoJSON(ctx, http.MethodPost, "/entities/v1/search", reqBody, &raw); err != nil {
 		return nil, fmt.Errorf("datahub: SearchDatasets: %w", err)
 	}
 	result := &SearchResult{
@@ -182,54 +128,29 @@ func (c *dhHTTPClient) SearchDatasets(ctx context.Context, query string, start, 
 }
 
 func (c *dhHTTPClient) EmitMetadata(ctx context.Context, proposals []MetadataProposal) error {
-	reqBody := map[string]any{"proposals": proposals}
-	resp, err := c.do(ctx, http.MethodPost, "/aspects?action=ingestProposal", reqBody)
-	if err != nil {
-		return fmt.Errorf("datahub: EmitMetadata: %w", err)
-	}
-	return c.decodeResponse(resp, nil)
+	return c.client.DoJSON(ctx, http.MethodPost, "/aspects?action=ingestProposal", map[string]any{"proposals": proposals}, nil)
 }
 
 func (c *dhHTTPClient) AddTag(ctx context.Context, urn, tag string) error {
-	reqBody := map[string]any{"urn": urn, "tag": tag}
-	resp, err := c.do(ctx, http.MethodPost, "/entities?action=setTag", reqBody)
-	if err != nil {
-		return fmt.Errorf("datahub: AddTag: %w", err)
-	}
-	return c.decodeResponse(resp, nil)
+	return c.client.DoJSON(ctx, http.MethodPost, "/entities?action=setTag", map[string]any{"urn": urn, "tag": tag}, nil)
 }
 
 func (c *dhHTTPClient) AddGlossaryTerm(ctx context.Context, urn, term string) error {
-	reqBody := map[string]any{"urn": urn, "term": term}
-	resp, err := c.do(ctx, http.MethodPost, "/entities?action=setGlossaryTerm", reqBody)
-	if err != nil {
-		return fmt.Errorf("datahub: AddGlossaryTerm: %w", err)
-	}
-	return c.decodeResponse(resp, nil)
+	return c.client.DoJSON(ctx, http.MethodPost, "/entities?action=setGlossaryTerm", map[string]any{"urn": urn, "term": term}, nil)
 }
 
 func (c *dhHTTPClient) SetOwner(ctx context.Context, urn, ownerUrn, ownerType string) error {
-	reqBody := map[string]any{"urn": urn, "ownerUrn": ownerUrn, "ownerType": ownerType}
-	resp, err := c.do(ctx, http.MethodPost, "/entities?action=setOwner", reqBody)
-	if err != nil {
-		return fmt.Errorf("datahub: SetOwner: %w", err)
-	}
-	return c.decodeResponse(resp, nil)
+	return c.client.DoJSON(ctx, http.MethodPost, "/entities?action=setOwner", map[string]any{"urn": urn, "ownerUrn": ownerUrn, "ownerType": ownerType}, nil)
 }
 
 func (c *dhHTTPClient) GetLineage(ctx context.Context, urn, direction string) (*LineageResult, error) {
-	reqBody := map[string]any{"urn": urn, "direction": direction}
-	resp, err := c.do(ctx, http.MethodPost, "/relationships?action=setLineage", reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("datahub: GetLineage: %w", err)
-	}
 	var raw struct {
 		Entities []struct {
 			URN  string `json:"urn"`
 			Name string `json:"name"`
 		} `json:"entities"`
 	}
-	if err := c.decodeResponse(resp, &raw); err != nil {
+	if err := c.client.DoJSON(ctx, http.MethodPost, "/relationships?action=setLineage", map[string]any{"urn": urn, "direction": direction}, &raw); err != nil {
 		return nil, fmt.Errorf("datahub: GetLineage: %w", err)
 	}
 	result := &LineageResult{URN: urn, Direction: direction}

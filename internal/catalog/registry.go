@@ -1,40 +1,22 @@
 package catalog
 
 import (
-	"fmt"
-	"sync"
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/registry"
 )
 
-var (
-	srMu      sync.RWMutex
-	srModules = map[string]*SchemaRegistryModule{}
-)
+var srRegistry = registry.New[*SchemaRegistryModule]("schema registry")
 
 // RegisterSRModule registers a SchemaRegistryModule under the given name.
 func RegisterSRModule(name string, m *SchemaRegistryModule) error {
-	srMu.Lock()
-	defer srMu.Unlock()
-	if _, exists := srModules[name]; exists {
-		return fmt.Errorf("catalog: schema registry module %q already registered", name)
-	}
-	srModules[name] = m
-	return nil
+	return srRegistry.Register(name, m)
 }
 
 // UnregisterSRModule removes a registered SchemaRegistryModule.
 func UnregisterSRModule(name string) {
-	srMu.Lock()
-	defer srMu.Unlock()
-	delete(srModules, name)
+	srRegistry.Unregister(name)
 }
 
 // LookupSRModule returns the registered SchemaRegistryModule by name.
 func LookupSRModule(name string) (*SchemaRegistryModule, error) {
-	srMu.RLock()
-	defer srMu.RUnlock()
-	m, ok := srModules[name]
-	if !ok {
-		return nil, fmt.Errorf("catalog: no schema registry module registered for %q", name)
-	}
-	return m, nil
+	return srRegistry.Lookup(name)
 }

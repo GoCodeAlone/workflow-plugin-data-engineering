@@ -29,10 +29,7 @@ func (s *druidTestServer) handle(path string, fn http.HandlerFunc) {
 }
 
 func (s *druidTestServer) client() DruidClient {
-	return &druidHTTPClient{
-		routerURL:  s.srv.URL,
-		httpClient: s.srv.Client(),
-	}
+	return NewDruidClient(s.srv.URL, "", "", 60*time.Second)
 }
 
 func jsonResp(w http.ResponseWriter, v any) {
@@ -53,7 +50,7 @@ func TestDruidModule_Init_Start(t *testing.T) {
 		name:   "druid-test",
 		config: DruidConfig{RouterURL: srv.srv.URL},
 		newClient: func(cfg DruidConfig) DruidClient {
-			return &druidHTTPClient{routerURL: cfg.RouterURL, httpClient: srv.srv.Client()}
+			return NewDruidClient(cfg.RouterURL, cfg.Username, cfg.Password, 60*time.Second)
 		},
 	}
 
@@ -301,7 +298,7 @@ func TestDruidIngestStep(t *testing.T) {
 		name:   "druid-ingest-test",
 		config: DruidConfig{RouterURL: srv.srv.URL},
 		newClient: func(cfg DruidConfig) DruidClient {
-			return &druidHTTPClient{routerURL: cfg.RouterURL, httpClient: srv.srv.Client()}
+			return NewDruidClient(cfg.RouterURL, cfg.Username, cfg.Password, 60*time.Second)
 		},
 	}
 	_ = m.Start(context.Background())
@@ -338,7 +335,7 @@ func TestDruidQueryStep_SQL(t *testing.T) {
 		name:   "druid-query-test",
 		config: DruidConfig{RouterURL: srv.srv.URL},
 		newClient: func(cfg DruidConfig) DruidClient {
-			return &druidHTTPClient{routerURL: cfg.RouterURL, httpClient: srv.srv.Client()}
+			return NewDruidClient(cfg.RouterURL, cfg.Username, cfg.Password, 60*time.Second)
 		},
 	}
 	_ = m.Start(context.Background())
@@ -374,7 +371,7 @@ func TestDruidQueryStep_Native(t *testing.T) {
 		name:   "druid-native-test",
 		config: DruidConfig{RouterURL: srv.srv.URL},
 		newClient: func(cfg DruidConfig) DruidClient {
-			return &druidHTTPClient{routerURL: cfg.RouterURL, httpClient: srv.srv.Client()}
+			return NewDruidClient(cfg.RouterURL, cfg.Username, cfg.Password, 60*time.Second)
 		},
 	}
 	_ = m.Start(context.Background())
@@ -412,7 +409,7 @@ func TestDruidDatasourceStep(t *testing.T) {
 		name:   "druid-ds-test",
 		config: DruidConfig{RouterURL: srv.srv.URL},
 		newClient: func(cfg DruidConfig) DruidClient {
-			return &druidHTTPClient{routerURL: cfg.RouterURL, httpClient: srv.srv.Client()}
+			return NewDruidClient(cfg.RouterURL, cfg.Username, cfg.Password, 60*time.Second)
 		},
 	}
 	_ = m.Start(context.Background())
@@ -447,7 +444,7 @@ func TestDruidCompactStep(t *testing.T) {
 		name:   "druid-compact-test",
 		config: DruidConfig{RouterURL: srv.srv.URL},
 		newClient: func(cfg DruidConfig) DruidClient {
-			return &druidHTTPClient{routerURL: cfg.RouterURL, httpClient: srv.srv.Client()}
+			return NewDruidClient(cfg.RouterURL, cfg.Username, cfg.Password, 60*time.Second)
 		},
 	}
 	_ = m.Start(context.Background())
@@ -491,7 +488,7 @@ func TestDruidModule_WritePoint_WriteBatch(t *testing.T) {
 		name:   "druid-write-test",
 		config: DruidConfig{RouterURL: srv.srv.URL},
 		newClient: func(cfg DruidConfig) DruidClient {
-			return &druidHTTPClient{routerURL: cfg.RouterURL, httpClient: srv.srv.Client()}
+			return NewDruidClient(cfg.RouterURL, cfg.Username, cfg.Password, 60*time.Second)
 		},
 	}
 	_ = m.Start(context.Background())

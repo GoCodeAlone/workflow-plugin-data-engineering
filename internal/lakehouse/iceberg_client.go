@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/httpclient"
 )
 
 // Namespace is a multi-level Iceberg namespace (e.g. ["analytics", "raw"]).
@@ -175,9 +177,7 @@ type IcebergClientConfig struct {
 // httpCatalogClient implements IcebergCatalogClient using the Iceberg REST Catalog API.
 // It is stateless and safe for concurrent use after construction.
 type httpCatalogClient struct {
-	baseURL    string
-	token      string
-	httpClient *http.Client
+	base *httpclient.Client
 }
 
 // NewIcebergCatalogClient creates a new IcebergCatalogClient from config.
@@ -190,11 +190,11 @@ func NewIcebergCatalogClient(cfg IcebergClientConfig) (IcebergCatalogClient, err
 		timeout = 30 * time.Second
 	}
 	return &httpCatalogClient{
-		baseURL: strings.TrimSuffix(cfg.Endpoint, "/"),
-		token:   cfg.Token,
-		httpClient: &http.Client{
-			Timeout: timeout,
-		},
+		base: httpclient.New(
+			strings.TrimSuffix(cfg.Endpoint, "/"),
+			httpclient.AuthConfig{Type: "bearer", Token: cfg.Token},
+			timeout,
+		),
 	}, nil
 }
 
@@ -237,7 +237,7 @@ func (c *httpCatalogClient) doRequest(ctx context.Context, method, path string, 
 		bodyReader = bytes.NewReader(b)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, bodyReader)
+	req, err := http.NewRequestWithContext(ctx, method, c.base.BaseURL+path, bodyReader)
 	if err != nil {
 		return fmt.Errorf("iceberg client: build request: %w", err)
 	}
@@ -245,11 +245,11 @@ func (c *httpCatalogClient) doRequest(ctx context.Context, method, path string, 
 		req.Header.Set("Content-Type", "application/json")
 	}
 	req.Header.Set("Accept", "application/json")
-	if c.token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.token)
+	if c.base.Auth.Token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.base.Auth.Token)
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.base.HTTPClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("iceberg client: request %s %s: %w", method, path, err)
 	}
@@ -409,14 +409,14 @@ func (c *httpCatalogClient) DropTable(ctx context.Context, id TableIdentifier, p
 
 func (c *httpCatalogClient) TableExists(ctx context.Context, id TableIdentifier) (bool, error) {
 	path := "/namespaces/" + encodeNamespacePath(id.Namespace) + "/tables/" + url.PathEscape(id.Name)
-	req, err := http.NewRequestWithContext(ctx, http.MethodHead, c.baseURL+path, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodHead, c.base.BaseURL+path, nil)
 	if err != nil {
 		return false, fmt.Errorf("iceberg client: build HEAD request: %w", err)
 	}
-	if c.token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.token)
+	if c.base.Auth.Token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.base.Auth.Token)
 	}
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.base.HTTPClient.Do(req)
 	if err != nil {
 		return false, fmt.Errorf("iceberg client: HEAD %s: %w", path, err)
 	}

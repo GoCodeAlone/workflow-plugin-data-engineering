@@ -1,40 +1,22 @@
 package migrate
 
 import (
-	"fmt"
-	"sync"
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/registry"
 )
 
-var (
-	moduleMu      sync.RWMutex
-	moduleRegistry = map[string]*SchemaModule{}
-)
+var moduleReg = registry.New[*SchemaModule]("migration module")
 
 // RegisterModule adds a named SchemaModule to the global registry.
 func RegisterModule(name string, m *SchemaModule) error {
-	moduleMu.Lock()
-	defer moduleMu.Unlock()
-	if _, exists := moduleRegistry[name]; exists {
-		return fmt.Errorf("migrate: module %q already registered", name)
-	}
-	moduleRegistry[name] = m
-	return nil
+	return moduleReg.Register(name, m)
 }
 
 // LookupModule retrieves a SchemaModule by name.
 func LookupModule(name string) (*SchemaModule, error) {
-	moduleMu.RLock()
-	defer moduleMu.RUnlock()
-	m, ok := moduleRegistry[name]
-	if !ok {
-		return nil, fmt.Errorf("migrate: module %q not registered", name)
-	}
-	return m, nil
+	return moduleReg.Lookup(name)
 }
 
 // UnregisterModule removes a SchemaModule from the registry.
 func UnregisterModule(name string) {
-	moduleMu.Lock()
-	defer moduleMu.Unlock()
-	delete(moduleRegistry, name)
+	moduleReg.Unregister(name)
 }

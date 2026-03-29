@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/httpclient"
 )
 
 // SchemaDefinition describes a schema to register or validate against.
@@ -51,26 +53,20 @@ type SchemaRegistryClient interface {
 }
 
 // srHTTPClient implements SchemaRegistryClient via HTTP.
+// Schema Registry uses a vendor content type, so it keeps its own do() method
+// while delegating auth and transport to httpclient.Client.
 type srHTTPClient struct {
-	endpoint   string
-	httpClient *http.Client
-	username   string
-	password   string
+	base *httpclient.Client
 }
 
 // NewSchemaRegistryClient creates a Schema Registry HTTP client.
 func NewSchemaRegistryClient(endpoint, username, password string, timeout time.Duration) SchemaRegistryClient {
-	if timeout == 0 {
-		timeout = 30 * time.Second
-	}
 	return &srHTTPClient{
-		endpoint:   endpoint,
-		httpClient: &http.Client{Timeout: timeout},
-		username:   username,
-		password:   password,
+		base: httpclient.New(endpoint, httpclient.AuthConfig{Type: "basic", Username: username, Password: password}, timeout),
 	}
 }
 
+// do builds and executes a Schema Registry request with the vendor content type.
 func (c *srHTTPClient) do(ctx context.Context, method, path string, body any) (*http.Response, error) {
 	var reqBody io.Reader
 	if body != nil {
@@ -80,7 +76,7 @@ func (c *srHTTPClient) do(ctx context.Context, method, path string, body any) (*
 		}
 		reqBody = bytes.NewReader(b)
 	}
-	req, err := http.NewRequestWithContext(ctx, method, c.endpoint+path, reqBody)
+	req, err := http.NewRequestWithContext(ctx, method, c.base.BaseURL+path, reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("schema registry: build request: %w", err)
 	}
@@ -88,10 +84,10 @@ func (c *srHTTPClient) do(ctx context.Context, method, path string, body any) (*
 	if body != nil {
 		req.Header.Set("Content-Type", "application/vnd.schemaregistry.v1+json")
 	}
-	if c.username != "" {
-		req.SetBasicAuth(c.username, c.password)
+	if c.base.Auth.Username != "" {
+		req.SetBasicAuth(c.base.Auth.Username, c.base.Auth.Password)
 	}
-	return c.httpClient.Do(req)
+	return c.base.HTTPClient.Do(req)
 }
 
 func (c *srHTTPClient) readJSON(resp *http.Response, out any) error {
@@ -101,7 +97,6 @@ func (c *srHTTPClient) readJSON(resp *http.Response, out any) error {
 		return fmt.Errorf("schema registry: read body: %w", err)
 	}
 	if resp.StatusCode >= 400 {
-		// Try to parse SR error format {"error_code":..., "message":...}
 		var srErr struct {
 			ErrorCode int    `json:"error_code"`
 			Message   string `json:"message"`
@@ -232,8 +227,7 @@ func (c *srHTTPClient) SetCompatibilityLevel(ctx context.Context, subject string
 	if subject != "" {
 		path = "/config/" + url.PathEscape(subject)
 	}
-	body := map[string]string{"compatibility": level}
-	resp, err := c.do(ctx, http.MethodPut, path, body)
+	resp, err := c.do(ctx, http.MethodPut, path, map[string]string{"compatibility": level})
 	if err != nil {
 		return fmt.Errorf("SetCompatibilityLevel: %w", err)
 	}
@@ -241,8 +235,6 @@ func (c *srHTTPClient) SetCompatibilityLevel(ctx context.Context, subject string
 }
 
 // ValidateSchema performs structural validation of data against the schema definition.
-// For JSON Schema, it checks the JSON is valid and matches field constraints.
-// For Avro/Protobuf, it validates field names match.
 func (c *srHTTPClient) ValidateSchema(_ context.Context, schema SchemaDefinition, data []byte) error {
 	switch schema.SchemaType {
 	case "JSON", "":
@@ -250,7 +242,6 @@ func (c *srHTTPClient) ValidateSchema(_ context.Context, schema SchemaDefinition
 	case "AVRO":
 		return validateAvroSchema(schema.Schema, data)
 	default:
-		// For PROTOBUF and unknown types, check the data is valid JSON.
 		var v any
 		if err := json.Unmarshal(data, &v); err != nil {
 			return fmt.Errorf("schema validation: invalid JSON payload: %w", err)
@@ -261,20 +252,16 @@ func (c *srHTTPClient) ValidateSchema(_ context.Context, schema SchemaDefinition
 
 // validateJSONSchema checks the data is valid JSON that can be decoded into any.
 func validateJSONSchema(schemaDef string, data []byte) error {
-	// Validate the data is parseable JSON.
 	var payload any
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return fmt.Errorf("schema validation: invalid JSON payload: %w", err)
 	}
 
-	// Parse the schema definition to get expected fields.
 	var schemaDef2 map[string]any
 	if err := json.Unmarshal([]byte(schemaDef), &schemaDef2); err != nil {
-		// Schema itself isn't valid JSON schema — skip field validation.
 		return nil
 	}
 
-	// If schema has required fields, verify they are present in the payload.
 	if required, ok := schemaDef2["required"].([]any); ok {
 		payloadObj, ok := payload.(map[string]any)
 		if !ok {
@@ -307,7 +294,7 @@ func validateAvroSchema(schemaDef string, data []byte) error {
 		} `json:"fields"`
 	}
 	if err := json.Unmarshal([]byte(schemaDef), &avroSchema); err != nil {
-		return nil // can't parse avro schema, skip
+		return nil
 	}
 
 	var missing []string

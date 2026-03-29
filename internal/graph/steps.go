@@ -3,20 +3,14 @@ package graph
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 
 	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/ident"
 )
 
-// validCypherIdentRe matches safe Cypher labels, relationship types, and property keys.
-var validCypherIdentRe = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
-
 func validateCypherIdent(id, kind string) error {
-	if !validCypherIdentRe.MatchString(id) {
-		return fmt.Errorf("invalid Cypher %s %q: must match [a-zA-Z_][a-zA-Z0-9_]*", kind, id)
-	}
-	return nil
+	return ident.ValidateCypher(id, kind)
 }
 
 // -- step.graph_query --

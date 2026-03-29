@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"sync"
 
 	"go.yaml.in/yaml/v3"
 	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
+	"github.com/GoCodeAlone/workflow-plugin-data-engineering/internal/registry"
 )
 
 // DataContract is the YAML schema for a data contract file.
@@ -126,32 +126,19 @@ func loadContractFromFile(path string) (*DataContract, error) {
 	return &contract, nil
 }
 
-// contractDBRegistry is a global registry for ContractDB implementations.
-var (
-	contractDBMu       sync.RWMutex
-	contractDBRegistry = map[string]ContractDB{}
-)
+// contractDBReg is a global registry for ContractDB implementations.
+var contractDBReg = registry.New[ContractDB]("contract database")
 
 // RegisterContractDB registers a ContractDB under a name for testing/wiring.
 func RegisterContractDB(name string, db ContractDB) {
-	contractDBMu.Lock()
-	defer contractDBMu.Unlock()
-	contractDBRegistry[name] = db
+	_ = contractDBReg.Register(name, db)
 }
 
 // UnregisterContractDB removes a ContractDB from the registry.
 func UnregisterContractDB(name string) {
-	contractDBMu.Lock()
-	defer contractDBMu.Unlock()
-	delete(contractDBRegistry, name)
+	contractDBReg.Unregister(name)
 }
 
 func lookupContractDB(name string) (ContractDB, error) {
-	contractDBMu.RLock()
-	defer contractDBMu.RUnlock()
-	db, ok := contractDBRegistry[name]
-	if !ok {
-		return nil, fmt.Errorf("contract_validate: no database %q registered", name)
-	}
-	return db, nil
+	return contractDBReg.Lookup(name)
 }
