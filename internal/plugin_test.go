@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -542,10 +545,135 @@ func TestPlugin_TenantMigrateParallel(t *testing.T) {
 // ─── Binary build test ────────────────────────────────────────────────────────
 
 func TestPlugin_BinaryBuilds(t *testing.T) {
-	cmd := exec.Command("go", "build", "-o", "/dev/null", "./cmd/workflow-plugin-data-engineering/...")
-	cmd.Dir = "/Users/jon/workspace/workflow-plugin-data-engineering"
+	// Locate the module root by walking up from this test file's directory.
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("could not determine test file path")
+	}
+	moduleRoot := filepath.Dir(filepath.Dir(file)) // internal/ -> repo root
+	cmd := exec.Command("go", "build", "-o", os.DevNull, "./cmd/workflow-plugin-data-engineering/...")
+	cmd.Dir = moduleRoot
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("go build failed: %v\n%s", err, string(out))
 	}
+}
+
+// ─── Strict contract coverage tests ──────────────────────────────────────────
+
+// pluginJSON is the shape we read from plugin.json for contract coverage checks.
+type pluginJSON struct {
+	StepTypes   []string          `json:"stepTypes"`
+	StepSchemas []stepSchemaEntry `json:"stepSchemas"`
+}
+
+type stepSchemaEntry struct {
+	Type string `json:"type"`
+}
+
+// moduleContractsJSON is the shape of plugin.contracts.json.
+type moduleContractsJSON struct {
+	ModuleContracts  map[string]any `json:"moduleContracts"`
+	TriggerContracts map[string]any `json:"triggerContracts"`
+}
+
+// repoRoot returns the absolute path to the repository root by locating plugin.json.
+func repoRoot(t *testing.T) string {
+	t.Helper()
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("could not determine test file path")
+	}
+	return filepath.Dir(filepath.Dir(file))
+}
+
+// TestPlugin_StepSchemaCoverage verifies that every step type advertised in
+// StepTypes() has a corresponding entry in the stepSchemas field of plugin.json.
+// This ensures strict contract descriptors are present for all steps.
+func TestPlugin_StepSchemaCoverage(t *testing.T) {
+	root := repoRoot(t)
+	data, err := os.ReadFile(filepath.Join(root, "plugin.json"))
+	if err != nil {
+		t.Fatalf("read plugin.json: %v", err)
+	}
+	var pj pluginJSON
+	if err := json.Unmarshal(data, &pj); err != nil {
+		t.Fatalf("parse plugin.json: %v", err)
+	}
+
+	// Index step schemas by type.
+	schemaIndex := make(map[string]bool, len(pj.StepSchemas))
+	for _, s := range pj.StepSchemas {
+		schemaIndex[s.Type] = true
+	}
+
+	// Every step type in the manifest must have a stepSchema.
+	missing := []string{}
+	for _, st := range pj.StepTypes {
+		if !schemaIndex[st] {
+			missing = append(missing, st)
+		}
+	}
+	if len(missing) > 0 {
+		t.Errorf("plugin.json stepSchemas missing contract descriptors for %d step type(s):\n  %s",
+			len(missing), strings.Join(missing, "\n  "))
+	}
+
+	// Every stepSchema must have a corresponding advertised step type.
+	typeIndex := make(map[string]bool, len(pj.StepTypes))
+	for _, st := range pj.StepTypes {
+		typeIndex[st] = true
+	}
+	for _, s := range pj.StepSchemas {
+		if !typeIndex[s.Type] {
+			t.Errorf("stepSchemas contains orphan entry %q not in stepTypes", s.Type)
+		}
+	}
+
+	t.Logf("strict contract coverage: %d/%d step types have schema descriptors",
+		len(schemaIndex), len(pj.StepTypes))
+}
+
+// TestPlugin_ModuleContractCoverage verifies that plugin.contracts.json provides
+// field contracts for every module type and trigger type advertised by the plugin.
+func TestPlugin_ModuleContractCoverage(t *testing.T) {
+	root := repoRoot(t)
+	data, err := os.ReadFile(filepath.Join(root, "plugin.contracts.json"))
+	if err != nil {
+		t.Fatalf("read plugin.contracts.json: %v", err)
+	}
+	var mc moduleContractsJSON
+	if err := json.Unmarshal(data, &mc); err != nil {
+		t.Fatalf("parse plugin.contracts.json: %v", err)
+	}
+
+	p := newPlugin(t)
+
+	// Every advertised module type must have a contract entry.
+	missing := []string{}
+	for _, mt := range p.ModuleTypes() {
+		if _, ok := mc.ModuleContracts[mt]; !ok {
+			missing = append(missing, mt)
+		}
+	}
+	if len(missing) > 0 {
+		t.Errorf("plugin.contracts.json moduleContracts missing %d module type(s):\n  %s",
+			len(missing), strings.Join(missing, "\n  "))
+	}
+
+	// Every advertised trigger type must have a contract entry.
+	missingTrigger := []string{}
+	for _, tt := range p.TriggerTypes() {
+		if _, ok := mc.TriggerContracts[tt]; !ok {
+			missingTrigger = append(missingTrigger, tt)
+		}
+	}
+	if len(missingTrigger) > 0 {
+		t.Errorf("plugin.contracts.json triggerContracts missing %d trigger type(s):\n  %s",
+			len(missingTrigger), strings.Join(missingTrigger, "\n  "))
+	}
+
+	t.Logf("module contracts: %d/%d; trigger contracts: %d/%d",
+		len(mc.ModuleContracts), len(p.ModuleTypes()),
+		len(mc.TriggerContracts), len(p.TriggerTypes()))
 }

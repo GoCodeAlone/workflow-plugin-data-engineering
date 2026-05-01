@@ -12,6 +12,7 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.14.0
 	github.com/jackc/pgx/v5 v5.9.1
 	github.com/neo4j/neo4j-go-driver/v5 v5.28.4
+	github.com/parquet-go/parquet-go v0.29.0
 	github.com/questdb/go-questdb-client/v3 v3.2.0
 	go.yaml.in/yaml/v3 v3.0.4
 	gonum.org/v1/gonum v0.17.0
@@ -154,7 +155,6 @@ require (
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/parquet-go/bitpack v1.0.0 // indirect
 	github.com/parquet-go/jsonlite v1.0.0 // indirect
-	github.com/parquet-go/parquet-go v0.29.0 // indirect
 	github.com/paulmach/orb v0.12.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.25 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
