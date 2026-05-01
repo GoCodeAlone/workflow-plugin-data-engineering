@@ -657,7 +657,7 @@ func TestPlugin_ModuleContractCoverage(t *testing.T) {
 	// Index contracts by kind+type.
 	byKindType := make(map[string]bool, len(cf.Contracts))
 	for _, d := range cf.Contracts {
-		byKindType[d.Kind+"\x00"+d.Type] = true
+		byKindType[d.Kind+":"+d.Type] = true
 	}
 
 	p := newPlugin(t)
@@ -665,7 +665,7 @@ func TestPlugin_ModuleContractCoverage(t *testing.T) {
 	// Every advertised module type must have a contract entry.
 	missing := []string{}
 	for _, mt := range p.ModuleTypes() {
-		if !byKindType["module\x00"+mt] {
+		if !byKindType["module:"+mt] {
 			missing = append(missing, mt)
 		}
 	}
@@ -677,7 +677,7 @@ func TestPlugin_ModuleContractCoverage(t *testing.T) {
 	// Every advertised trigger type must have a contract entry.
 	missingTrigger := []string{}
 	for _, tt := range p.TriggerTypes() {
-		if !byKindType["trigger\x00"+tt] {
+		if !byKindType["trigger:"+tt] {
 			missingTrigger = append(missingTrigger, tt)
 		}
 	}
