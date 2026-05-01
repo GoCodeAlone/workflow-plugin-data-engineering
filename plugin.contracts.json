@@ -1,181 +1,405 @@
 {
-    "plugin": "workflow-plugin-data-engineering",
-    "version": "0.3.0",
-    "description": "Strict field contracts for all module, step, and trigger types provided by this plugin. Each entry declares required_inputs, optional_inputs, and outputs that are type-checked at step execution time.",
-    "moduleContracts": {
-        "cdc.source": {
-            "required_inputs": {
-                "provider": {"type": "string", "description": "CDC provider: bento, debezium, or dms"},
-                "source_id": {"type": "string", "description": "Unique identifier for this CDC source"},
-                "source_type": {"type": "string", "description": "Source database type: postgres or mysql"},
-                "connection": {"type": "string", "description": "Database connection string or DSN"}
-            },
-            "optional_inputs": {
-                "tables": {"type": "string", "description": "Comma-separated list of tables to capture"}
-            },
-            "outputs": {}
+    "version": "1",
+    "contracts": [
+        {
+            "kind": "module",
+            "type": "cdc.source",
+            "mode": "strict"
         },
-        "data.tenancy": {
-            "required_inputs": {
-                "strategy": {"type": "string", "description": "Isolation strategy: schema_per_tenant, db_per_tenant, or row_level"}
-            },
-            "optional_inputs": {
-                "db_url": {"type": "string", "description": "Database connection URL"},
-                "schema_prefix": {"type": "string", "description": "Schema name prefix for schema_per_tenant strategy"},
-                "label_column": {"type": "string", "description": "Column used for tenant identification in row_level strategy"}
-            },
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "data.tenancy",
+            "mode": "strict"
         },
-        "catalog.iceberg": {
-            "required_inputs": {
-                "catalog_type": {"type": "string", "description": "Iceberg catalog backend: rest, hive, or glue"},
-                "catalog_uri": {"type": "string", "description": "Catalog REST URI or Hive Metastore URI"}
-            },
-            "optional_inputs": {
-                "warehouse": {"type": "string", "description": "Default warehouse path"},
-                "credentials": {"type": "map", "description": "Auth credentials map (token, region, etc.)"}
-            },
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "catalog.iceberg",
+            "mode": "strict"
         },
-        "lakehouse.table": {
-            "required_inputs": {
-                "catalog": {"type": "string", "description": "catalog.iceberg module name"},
-                "namespace": {"type": "string", "description": "Namespace (database) in the catalog"},
-                "table": {"type": "string", "description": "Table name in the catalog"}
-            },
-            "optional_inputs": {},
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "lakehouse.table",
+            "mode": "strict"
         },
-        "timeseries.influxdb": {
-            "required_inputs": {
-                "url": {"type": "string", "description": "InfluxDB server URL"},
-                "token": {"type": "string", "description": "InfluxDB authentication token"},
-                "org": {"type": "string", "description": "InfluxDB organization"},
-                "bucket": {"type": "string", "description": "InfluxDB bucket"}
-            },
-            "optional_inputs": {
-                "timeout": {"type": "string", "description": "HTTP client timeout (e.g. 30s)"}
-            },
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "timeseries.influxdb",
+            "mode": "strict"
         },
-        "timeseries.timescaledb": {
-            "required_inputs": {
-                "connection": {"type": "string", "description": "PostgreSQL connection string"}
-            },
-            "optional_inputs": {
-                "maxOpenConns": {"type": "int", "description": "Maximum open database connections"}
-            },
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "timeseries.timescaledb",
+            "mode": "strict"
         },
-        "timeseries.clickhouse": {
-            "required_inputs": {
-                "endpoints": {"type": "string", "description": "ClickHouse server endpoint(s)"}
-            },
-            "optional_inputs": {
-                "database": {"type": "string", "description": "ClickHouse database name"},
-                "username": {"type": "string", "description": "ClickHouse username"},
-                "password": {"type": "string", "description": "ClickHouse password"}
-            },
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "timeseries.clickhouse",
+            "mode": "strict"
         },
-        "timeseries.questdb": {
-            "required_inputs": {
-                "ilpEndpoint": {"type": "string", "description": "QuestDB ILP TCP endpoint (host:port)"},
-                "httpEndpoint": {"type": "string", "description": "QuestDB HTTP endpoint for queries"}
-            },
-            "optional_inputs": {},
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "timeseries.questdb",
+            "mode": "strict"
         },
-        "timeseries.druid": {
-            "required_inputs": {
-                "routerUrl": {"type": "string", "description": "Druid Router URL"}
-            },
-            "optional_inputs": {
-                "username": {"type": "string", "description": "Druid username"},
-                "password": {"type": "string", "description": "Druid password"}
-            },
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "timeseries.druid",
+            "mode": "strict"
         },
-        "catalog.schema_registry": {
-            "required_inputs": {
-                "endpoint": {"type": "string", "description": "Schema Registry URL"}
-            },
-            "optional_inputs": {
-                "username": {"type": "string", "description": "Basic auth username"},
-                "password": {"type": "string", "description": "Basic auth password"}
-            },
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "catalog.schema_registry",
+            "mode": "strict"
         },
-        "graph.neo4j": {
-            "required_inputs": {
-                "uri": {"type": "string", "description": "Neo4j Bolt URI (e.g. bolt://localhost:7687)"},
-                "username": {"type": "string", "description": "Neo4j username"},
-                "password": {"type": "string", "description": "Neo4j password"}
-            },
-            "optional_inputs": {
-                "database": {"type": "string", "description": "Neo4j database name (default: neo4j)"}
-            },
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "graph.neo4j",
+            "mode": "strict"
         },
-        "catalog.datahub": {
-            "required_inputs": {
-                "endpoint": {"type": "string", "description": "DataHub GMS endpoint URL"}
-            },
-            "optional_inputs": {
-                "token": {"type": "string", "description": "DataHub access token"},
-                "timeout": {"type": "string", "description": "HTTP request timeout (e.g. 30s)"}
-            },
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "catalog.datahub",
+            "mode": "strict"
         },
-        "catalog.openmetadata": {
-            "required_inputs": {
-                "endpoint": {"type": "string", "description": "OpenMetadata server URL"}
-            },
-            "optional_inputs": {
-                "token": {"type": "string", "description": "OpenMetadata JWT token"},
-                "timeout": {"type": "string", "description": "HTTP request timeout (e.g. 30s)"}
-            },
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "catalog.openmetadata",
+            "mode": "strict"
         },
-        "quality.checks": {
-            "required_inputs": {},
-            "optional_inputs": {
-                "provider": {"type": "string", "description": "Check provider: builtin, dbt, soda, or great_expectations"},
-                "contractsDir": {"type": "string", "description": "Directory containing YAML data contracts"},
-                "database": {"type": "string", "description": "Referenced database module name for SQL checks"}
-            },
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "quality.checks",
+            "mode": "strict"
         },
-        "migrate.schema": {
-            "required_inputs": {
-                "strategy": {"type": "string", "description": "Migration strategy: declarative, scripted, or both"}
-            },
-            "optional_inputs": {
-                "target": {"type": "string", "description": "Target database module name"},
-                "migrationsDir": {"type": "string", "description": "Directory containing NNN_description.{up,down}.sql files"},
-                "lockTable": {"type": "string", "description": "Migration state tracking table"},
-                "onBreakingChange": {"type": "string", "description": "Policy for breaking changes: block, warn, or blue_green"}
-            },
-            "outputs": {}
+        {
+            "kind": "module",
+            "type": "migrate.schema",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_start",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_stop",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_status",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_snapshot",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_schema_history",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_backpressure",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_monitor",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.tenant_provision",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.tenant_deprovision",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.tenant_migrate",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.tenant_evaluate_promotion",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.tenant_promote",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.tenant_demote",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_create_table",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_evolve_schema",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_write",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_compact",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_snapshot",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_query",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_expire_snapshots",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_write",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_write_batch",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_query",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_downsample",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_retention",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_continuous_query",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_archive",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_tier_status",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_clickhouse_view",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_druid_ingest",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_druid_query",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_druid_datasource",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_druid_compact",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.schema_register",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.schema_validate",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.graph_query",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.graph_write",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.graph_import",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.graph_extract_entities",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.graph_extract_entities_llm",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.graph_link",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.catalog_register",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.catalog_search",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.catalog_lineage",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.catalog_lineage_query",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.contract_validate",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_check",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_schema_validate",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_profile",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_compare",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_anomaly",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_dbt_test",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_soda_check",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_ge_validate",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_plan",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_apply",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_run",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_rollback",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_status",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_expand",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_contract",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_expand_status",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.schema_evolve_pipeline",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.schema_evolve_verify",
+            "mode": "strict"
+        },
+        {
+            "kind": "trigger",
+            "type": "trigger.cdc",
+            "mode": "strict"
         }
-    },
-    "triggerContracts": {
-        "trigger.cdc": {
-            "required_inputs": {
-                "source_id": {"type": "string", "description": "CDC source identifier to listen to"}
-            },
-            "optional_inputs": {
-                "tables": {"type": "string", "description": "Comma-separated table filter (empty = all)"},
-                "operations": {"type": "string", "description": "Event types to trigger on: insert, update, delete (comma-separated)"}
-            },
-            "outputs": {
-                "operation": {"type": "string", "description": "CDC event type: insert, update, or delete"},
-                "table": {"type": "string", "description": "Table that produced the event"},
-                "before": {"type": "map", "description": "Row state before the change (update/delete only)"},
-                "after": {"type": "map", "description": "Row state after the change (insert/update only)"},
-                "source_id": {"type": "string", "description": "CDC source identifier"},
-                "timestamp": {"type": "string", "description": "Event timestamp (RFC3339)"}
-            }
-        }
-    }
+    ]
 }

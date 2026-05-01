@@ -571,10 +571,17 @@ type stepSchemaEntry struct {
 	Type string `json:"type"`
 }
 
-// moduleContractsJSON is the shape of plugin.contracts.json.
-type moduleContractsJSON struct {
-	ModuleContracts  map[string]any `json:"moduleContracts"`
-	TriggerContracts map[string]any `json:"triggerContracts"`
+// pluginContractDescriptor matches the wfctl pluginContractDescriptor format.
+type pluginContractDescriptor struct {
+	Kind string `json:"kind"`
+	Type string `json:"type"`
+	Mode string `json:"mode"`
+}
+
+// pluginContractDescriptorFile is the shape of plugin.contracts.json.
+type pluginContractDescriptorFile struct {
+	Version   string                     `json:"version"`
+	Contracts []pluginContractDescriptor `json:"contracts"`
 }
 
 // repoRoot returns the absolute path to the repository root by locating plugin.json.
@@ -635,16 +642,22 @@ func TestPlugin_StepSchemaCoverage(t *testing.T) {
 }
 
 // TestPlugin_ModuleContractCoverage verifies that plugin.contracts.json provides
-// field contracts for every module type and trigger type advertised by the plugin.
+// strict contract descriptors for every module type and trigger type advertised by the plugin.
 func TestPlugin_ModuleContractCoverage(t *testing.T) {
 	root := repoRoot(t)
 	data, err := os.ReadFile(filepath.Join(root, "plugin.contracts.json"))
 	if err != nil {
 		t.Fatalf("read plugin.contracts.json: %v", err)
 	}
-	var mc moduleContractsJSON
-	if err := json.Unmarshal(data, &mc); err != nil {
+	var cf pluginContractDescriptorFile
+	if err := json.Unmarshal(data, &cf); err != nil {
 		t.Fatalf("parse plugin.contracts.json: %v", err)
+	}
+
+	// Index contracts by kind+type.
+	byKindType := make(map[string]bool, len(cf.Contracts))
+	for _, d := range cf.Contracts {
+		byKindType[d.Kind+"\x00"+d.Type] = true
 	}
 
 	p := newPlugin(t)
@@ -652,28 +665,30 @@ func TestPlugin_ModuleContractCoverage(t *testing.T) {
 	// Every advertised module type must have a contract entry.
 	missing := []string{}
 	for _, mt := range p.ModuleTypes() {
-		if _, ok := mc.ModuleContracts[mt]; !ok {
+		if !byKindType["module\x00"+mt] {
 			missing = append(missing, mt)
 		}
 	}
 	if len(missing) > 0 {
-		t.Errorf("plugin.contracts.json moduleContracts missing %d module type(s):\n  %s",
+		t.Errorf("plugin.contracts.json missing module contract descriptor(s) for %d module type(s):\n  %s",
 			len(missing), strings.Join(missing, "\n  "))
 	}
 
 	// Every advertised trigger type must have a contract entry.
 	missingTrigger := []string{}
 	for _, tt := range p.TriggerTypes() {
-		if _, ok := mc.TriggerContracts[tt]; !ok {
+		if !byKindType["trigger\x00"+tt] {
 			missingTrigger = append(missingTrigger, tt)
 		}
 	}
 	if len(missingTrigger) > 0 {
-		t.Errorf("plugin.contracts.json triggerContracts missing %d trigger type(s):\n  %s",
+		t.Errorf("plugin.contracts.json missing trigger contract descriptor(s) for %d trigger type(s):\n  %s",
 			len(missingTrigger), strings.Join(missingTrigger, "\n  "))
 	}
 
+	moduleCount := len(p.ModuleTypes()) - len(missing)
+	triggerCount := len(p.TriggerTypes()) - len(missingTrigger)
 	t.Logf("module contracts: %d/%d; trigger contracts: %d/%d",
-		len(mc.ModuleContracts), len(p.ModuleTypes()),
-		len(mc.TriggerContracts), len(p.TriggerTypes()))
+		moduleCount, len(p.ModuleTypes()),
+		triggerCount, len(p.TriggerTypes()))
 }
