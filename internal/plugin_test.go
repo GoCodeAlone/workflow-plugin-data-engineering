@@ -594,9 +594,10 @@ func repoRoot(t *testing.T) string {
 	return filepath.Dir(filepath.Dir(file))
 }
 
-// TestPlugin_StepSchemaCoverage verifies that every step type advertised in
-// StepTypes() has a corresponding entry in the stepSchemas field of plugin.json.
-// This ensures strict contract descriptors are present for all steps.
+// TestPlugin_StepSchemaCoverage verifies that every step type listed in the
+// stepTypes array of plugin.json has a corresponding entry in the stepSchemas
+// array of the same file, and that no orphan stepSchemas entries exist.
+// This ensures strict contract descriptors are present for all advertised steps.
 func TestPlugin_StepSchemaCoverage(t *testing.T) {
 	root := repoRoot(t)
 	data, err := os.ReadFile(filepath.Join(root, "plugin.json"))
