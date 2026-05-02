@@ -115,7 +115,7 @@
                 {"key": "provider", "type": "select", "description": "CDC provider type", "options": ["bento", "debezium", "dms"]},
                 {"key": "source_type", "type": "select", "description": "Source database type", "options": ["postgres", "mysql"]},
                 {"key": "connection", "type": "string", "description": "Database connection string or DSN", "sensitive": true},
-                {"key": "tables", "type": "string", "description": "Comma-separated list of tables to capture"}
+                {"key": "tables", "type": "array", "arrayItemType": "string", "description": "List of tables to capture (empty = all tables)"}
             ],
             "outputs": [
                 {"key": "source_id", "type": "string", "description": "The CDC source identifier"},

@@ -654,10 +654,12 @@ func TestPlugin_ModuleContractCoverage(t *testing.T) {
 		t.Fatalf("parse plugin.contracts.json: %v", err)
 	}
 
-	// Index contracts by kind+type.
+	// Index contracts by kind+type, recording only strict-mode entries.
 	byKindType := make(map[string]bool, len(cf.Contracts))
 	for _, d := range cf.Contracts {
-		byKindType[d.Kind+":"+d.Type] = true
+		if d.Mode == "strict" {
+			byKindType[d.Kind+":"+d.Type] = true
+		}
 	}
 
 	p := newPlugin(t)
@@ -670,11 +672,11 @@ func TestPlugin_ModuleContractCoverage(t *testing.T) {
 		}
 	}
 	if len(missing) > 0 {
-		t.Errorf("plugin.contracts.json missing module contract descriptor(s) for %d module type(s):\n  %s",
+		t.Errorf("plugin.contracts.json missing strict mode contract descriptor(s) for %d module type(s):\n  %s",
 			len(missing), strings.Join(missing, "\n  "))
 	}
 
-	// Every advertised trigger type must have a contract entry.
+	// Every advertised trigger type must have a strict contract entry.
 	missingTrigger := []string{}
 	for _, tt := range p.TriggerTypes() {
 		if !byKindType["trigger:"+tt] {
@@ -682,7 +684,7 @@ func TestPlugin_ModuleContractCoverage(t *testing.T) {
 		}
 	}
 	if len(missingTrigger) > 0 {
-		t.Errorf("plugin.contracts.json missing trigger contract descriptor(s) for %d trigger type(s):\n  %s",
+		t.Errorf("plugin.contracts.json missing strict mode contract descriptor(s) for %d trigger type(s):\n  %s",
 			len(missingTrigger), strings.Join(missingTrigger, "\n  "))
 	}
 
