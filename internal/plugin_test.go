@@ -545,12 +545,7 @@ func TestPlugin_TenantMigrateParallel(t *testing.T) {
 // ─── Binary build test ────────────────────────────────────────────────────────
 
 func TestPlugin_BinaryBuilds(t *testing.T) {
-	// Locate the module root by walking up from this test file's directory.
-	_, file, _, ok := runtime.Caller(0)
-	if !ok {
-		t.Fatal("could not determine test file path")
-	}
-	moduleRoot := filepath.Dir(filepath.Dir(file)) // internal/ -> repo root
+	moduleRoot := repoRoot(t)
 	cmd := exec.Command("go", "build", "-o", os.DevNull, "./cmd/workflow-plugin-data-engineering/...")
 	cmd.Dir = moduleRoot
 	out, err := cmd.CombinedOutput()
@@ -584,7 +579,8 @@ type pluginContractDescriptorFile struct {
 	Contracts []pluginContractDescriptor `json:"contracts"`
 }
 
-// repoRoot returns the absolute path to the repository root by locating plugin.json.
+// repoRoot returns the absolute path to the repository root by walking up two
+// directory levels from the current test file (internal/ → repo root).
 func repoRoot(t *testing.T) string {
 	t.Helper()
 	_, file, _, ok := runtime.Caller(0)
@@ -596,8 +592,8 @@ func repoRoot(t *testing.T) string {
 
 // TestPlugin_StepSchemaCoverage verifies that every step type listed in the
 // stepTypes array of plugin.json has a corresponding entry in the stepSchemas
-// array of the same file, and that no orphan stepSchemas entries exist.
-// This ensures strict contract descriptors are present for all advertised steps.
+// array of the same file, that no orphan stepSchemas entries exist, and that
+// no step type appears in stepSchemas more than once.
 func TestPlugin_StepSchemaCoverage(t *testing.T) {
 	root := repoRoot(t)
 	data, err := os.ReadFile(filepath.Join(root, "plugin.json"))
@@ -609,9 +605,12 @@ func TestPlugin_StepSchemaCoverage(t *testing.T) {
 		t.Fatalf("parse plugin.json: %v", err)
 	}
 
-	// Index step schemas by type.
+	// Index step schemas by type; detect duplicates.
 	schemaIndex := make(map[string]bool, len(pj.StepSchemas))
 	for _, s := range pj.StepSchemas {
+		if schemaIndex[s.Type] {
+			t.Errorf("stepSchemas contains duplicate entry for type %q", s.Type)
+		}
 		schemaIndex[s.Type] = true
 	}
 

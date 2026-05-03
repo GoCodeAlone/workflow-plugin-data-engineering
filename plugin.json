@@ -109,7 +109,7 @@
         {
             "type": "step.cdc_start",
             "plugin": "workflow-plugin-data-engineering",
-            "description": "Start a CDC source stream. Looks up the cdc.source module by source_id and establishes the change stream.",
+            "description": "Start a CDC source stream. Looks up the cdc.source module by source_id and establishes the change stream. When no running module is registered for the source_id, provider, source_type, connection, and tables are required to start a new provider.",
             "configFields": [
                 {"key": "source_id", "type": "string", "description": "Unique identifier for the CDC source to start", "required": true},
                 {"key": "provider", "type": "select", "description": "CDC provider type", "options": ["bento", "debezium", "dms"]},

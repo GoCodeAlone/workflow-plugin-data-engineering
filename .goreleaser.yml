@@ -4,7 +4,7 @@ before:
   hooks:
     - go mod tidy
     - "sed -i.bak 's/\"version\": \".*\"/\"version\": \"{{ .Version }}\"/' plugin.json && rm -f plugin.json.bak"
-    - "sed -i.bak 's|/releases/download/v[0-9][0-9]*\\.[0-9][0-9]*\\.[0-9][0-9]*/|/releases/download/v{{ .Version }}/|g' plugin.json && rm -f plugin.json.bak"
+    - "sed -i.bak 's|/releases/download/v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/|/releases/download/v{{ .Version }}/|g' plugin.json && rm -f plugin.json.bak"
 
 builds:
   - id: workflow-plugin-data-engineering
