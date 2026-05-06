@@ -1,0 +1,405 @@
+{
+    "version": "1",
+    "contracts": [
+        {
+            "kind": "module",
+            "type": "cdc.source",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "data.tenancy",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "catalog.iceberg",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "lakehouse.table",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "timeseries.influxdb",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "timeseries.timescaledb",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "timeseries.clickhouse",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "timeseries.questdb",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "timeseries.druid",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "catalog.schema_registry",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "graph.neo4j",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "catalog.datahub",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "catalog.openmetadata",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "quality.checks",
+            "mode": "strict"
+        },
+        {
+            "kind": "module",
+            "type": "migrate.schema",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_start",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_stop",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_status",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_snapshot",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_schema_history",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_backpressure",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.cdc_monitor",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.tenant_provision",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.tenant_deprovision",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.tenant_migrate",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.tenant_evaluate_promotion",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.tenant_promote",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.tenant_demote",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_create_table",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_evolve_schema",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_write",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_compact",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_snapshot",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_query",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.lakehouse_expire_snapshots",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_write",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_write_batch",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_query",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_downsample",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_retention",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_continuous_query",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_archive",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_tier_status",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_clickhouse_view",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_druid_ingest",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_druid_query",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_druid_datasource",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.ts_druid_compact",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.schema_register",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.schema_validate",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.graph_query",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.graph_write",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.graph_import",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.graph_extract_entities",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.graph_extract_entities_llm",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.graph_link",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.catalog_register",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.catalog_search",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.catalog_lineage",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.catalog_lineage_query",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.contract_validate",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_check",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_schema_validate",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_profile",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_compare",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_anomaly",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_dbt_test",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_soda_check",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.quality_ge_validate",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_plan",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_apply",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_run",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_rollback",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_status",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_expand",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_contract",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.migrate_expand_status",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.schema_evolve_pipeline",
+            "mode": "strict"
+        },
+        {
+            "kind": "step",
+            "type": "step.schema_evolve_verify",
+            "mode": "strict"
+        },
+        {
+            "kind": "trigger",
+            "type": "trigger.cdc",
+            "mode": "strict"
+        }
+    ]
+}

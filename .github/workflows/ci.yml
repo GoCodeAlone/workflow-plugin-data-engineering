@@ -26,6 +26,21 @@ jobs:
       - name: Run vet
         run: go vet ./...
 
+  wfctl-strict-contracts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Validate strict plugin contracts
+        run: go run github.com/GoCodeAlone/workflow/cmd/wfctl@v0.20.1 plugin validate --file plugin.json --strict-contracts
+
   build:
     runs-on: ubuntu-latest
     needs: test
