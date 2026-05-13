@@ -1,23 +1,55 @@
 {
     "name": "workflow-plugin-data-engineering",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Data engineering plugin: CDC, lakehouse, time-series, graph, data quality, catalog, migration, multi-tenancy",
     "author": "GoCodeAlone",
     "license": "MIT",
     "type": "external",
     "tier": "core",
-    "minEngineVersion": "0.3.56",
-    "keywords": ["cdc", "lakehouse", "timeseries", "graph", "data-quality", "multi-tenancy", "debezium", "iceberg", "neo4j", "catalog", "migration", "data-contract"],
+    "minEngineVersion": "0.51.7",
+    "keywords": [
+        "cdc",
+        "lakehouse",
+        "timeseries",
+        "graph",
+        "data-quality",
+        "multi-tenancy",
+        "debezium",
+        "iceberg",
+        "neo4j",
+        "catalog",
+        "migration",
+        "data-contract"
+    ],
     "homepage": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering",
     "repository": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering",
     "dependencies": [
-        {"name": "bento", "constraint": ">=1.0.0"}
+        {
+            "name": "bento",
+            "constraint": ">=1.0.0"
+        }
     ],
     "downloads": [
-        {"os": "linux",  "arch": "amd64", "url": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering/releases/download/v0.3.0/workflow-plugin-data-engineering-linux-amd64.tar.gz"},
-        {"os": "linux",  "arch": "arm64", "url": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering/releases/download/v0.3.0/workflow-plugin-data-engineering-linux-arm64.tar.gz"},
-        {"os": "darwin", "arch": "amd64", "url": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering/releases/download/v0.3.0/workflow-plugin-data-engineering-darwin-amd64.tar.gz"},
-        {"os": "darwin", "arch": "arm64", "url": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering/releases/download/v0.3.0/workflow-plugin-data-engineering-darwin-arm64.tar.gz"}
+        {
+            "os": "linux",
+            "arch": "amd64",
+            "url": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering/releases/download/v0.3.0/workflow-plugin-data-engineering-linux-amd64.tar.gz"
+        },
+        {
+            "os": "linux",
+            "arch": "arm64",
+            "url": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering/releases/download/v0.3.0/workflow-plugin-data-engineering-linux-arm64.tar.gz"
+        },
+        {
+            "os": "darwin",
+            "arch": "amd64",
+            "url": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering/releases/download/v0.3.0/workflow-plugin-data-engineering-darwin-amd64.tar.gz"
+        },
+        {
+            "os": "darwin",
+            "arch": "arm64",
+            "url": "https://github.com/GoCodeAlone/workflow-plugin-data-engineering/releases/download/v0.3.0/workflow-plugin-data-engineering-darwin-arm64.tar.gz"
+        }
     ],
     "moduleTypes": [
         "cdc.source",
@@ -111,16 +143,60 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Start a CDC source stream. Looks up the cdc.source module by source_id and establishes the change stream. When no running module is registered for the source_id, provider, source_type, connection, and tables are required to start a new provider.",
             "configFields": [
-                {"key": "source_id", "type": "string", "description": "Unique identifier for the CDC source to start", "required": true},
-                {"key": "provider", "type": "select", "description": "CDC provider type", "options": ["bento", "debezium", "dms"]},
-                {"key": "source_type", "type": "select", "description": "Source database type", "options": ["postgres", "mysql"]},
-                {"key": "connection", "type": "string", "description": "Database connection string or DSN", "sensitive": true},
-                {"key": "tables", "type": "array", "arrayItemType": "string", "description": "List of tables to capture (empty = all tables)"}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "Unique identifier for the CDC source to start",
+                    "required": true
+                },
+                {
+                    "key": "provider",
+                    "type": "select",
+                    "description": "CDC provider type",
+                    "options": [
+                        "bento",
+                        "debezium",
+                        "dms"
+                    ]
+                },
+                {
+                    "key": "source_type",
+                    "type": "select",
+                    "description": "Source database type",
+                    "options": [
+                        "postgres",
+                        "mysql"
+                    ]
+                },
+                {
+                    "key": "connection",
+                    "type": "string",
+                    "description": "Database connection string or DSN",
+                    "sensitive": true
+                },
+                {
+                    "key": "tables",
+                    "type": "array",
+                    "arrayItemType": "string",
+                    "description": "List of tables to capture (empty = all tables)"
+                }
             ],
             "outputs": [
-                {"key": "source_id", "type": "string", "description": "The CDC source identifier"},
-                {"key": "action", "type": "string", "description": "Action taken: 'started'"},
-                {"key": "state", "type": "string", "description": "Current stream state"}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "The CDC source identifier"
+                },
+                {
+                    "key": "action",
+                    "type": "string",
+                    "description": "Action taken: 'started'"
+                },
+                {
+                    "key": "state",
+                    "type": "string",
+                    "description": "Current stream state"
+                }
             ]
         },
         {
@@ -128,11 +204,24 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Stop a running CDC source stream and deregister it.",
             "configFields": [
-                {"key": "source_id", "type": "string", "description": "Unique identifier for the CDC source to stop", "required": true}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "Unique identifier for the CDC source to stop",
+                    "required": true
+                }
             ],
             "outputs": [
-                {"key": "source_id", "type": "string", "description": "The CDC source identifier"},
-                {"key": "action", "type": "string", "description": "Action taken: 'stopped'"}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "The CDC source identifier"
+                },
+                {
+                    "key": "action",
+                    "type": "string",
+                    "description": "Action taken: 'stopped'"
+                }
             ]
         },
         {
@@ -140,14 +229,39 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Get the current status of a running CDC stream.",
             "configFields": [
-                {"key": "source_id", "type": "string", "description": "Unique identifier for the CDC source", "required": true}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "Unique identifier for the CDC source",
+                    "required": true
+                }
             ],
             "outputs": [
-                {"key": "source_id", "type": "string", "description": "The CDC source identifier"},
-                {"key": "state", "type": "string", "description": "Current stream state (running, stopped, error)"},
-                {"key": "provider", "type": "string", "description": "CDC provider type"},
-                {"key": "last_event", "type": "string", "description": "Timestamp of last received event (if available)"},
-                {"key": "error", "type": "string", "description": "Last error message (if any)"}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "The CDC source identifier"
+                },
+                {
+                    "key": "state",
+                    "type": "string",
+                    "description": "Current stream state (running, stopped, error)"
+                },
+                {
+                    "key": "provider",
+                    "type": "string",
+                    "description": "CDC provider type"
+                },
+                {
+                    "key": "last_event",
+                    "type": "string",
+                    "description": "Timestamp of last received event (if available)"
+                },
+                {
+                    "key": "error",
+                    "type": "string",
+                    "description": "Last error message (if any)"
+                }
             ]
         },
         {
@@ -155,13 +269,35 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Trigger a full table snapshot on a running CDC stream.",
             "configFields": [
-                {"key": "source_id", "type": "string", "description": "Unique identifier for the CDC source", "required": true},
-                {"key": "tables", "type": "array", "description": "List of tables to snapshot (empty = all tracked tables)", "arrayItemType": "string"}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "Unique identifier for the CDC source",
+                    "required": true
+                },
+                {
+                    "key": "tables",
+                    "type": "array",
+                    "description": "List of tables to snapshot (empty = all tracked tables)",
+                    "arrayItemType": "string"
+                }
             ],
             "outputs": [
-                {"key": "source_id", "type": "string", "description": "The CDC source identifier"},
-                {"key": "action", "type": "string", "description": "Action taken: 'snapshot_triggered'"},
-                {"key": "tables", "type": "array", "description": "Tables included in the snapshot"}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "The CDC source identifier"
+                },
+                {
+                    "key": "action",
+                    "type": "string",
+                    "description": "Action taken: 'snapshot_triggered'"
+                },
+                {
+                    "key": "tables",
+                    "type": "array",
+                    "description": "Tables included in the snapshot"
+                }
             ]
         },
         {
@@ -169,14 +305,40 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Query DDL change history for a specific table on a CDC source.",
             "configFields": [
-                {"key": "source_id", "type": "string", "description": "Unique identifier for the CDC source", "required": true},
-                {"key": "table", "type": "string", "description": "Table name to query DDL history for", "required": true}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "Unique identifier for the CDC source",
+                    "required": true
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table name to query DDL history for",
+                    "required": true
+                }
             ],
             "outputs": [
-                {"key": "source_id", "type": "string", "description": "The CDC source identifier"},
-                {"key": "table", "type": "string", "description": "Table name"},
-                {"key": "history", "type": "array", "description": "List of schema versions with table, version, ddl, applied_at fields"},
-                {"key": "count", "type": "number", "description": "Number of schema versions returned"}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "The CDC source identifier"
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table name"
+                },
+                {
+                    "key": "history",
+                    "type": "array",
+                    "description": "List of schema versions with table, version, ddl, applied_at fields"
+                },
+                {
+                    "key": "count",
+                    "type": "number",
+                    "description": "Number of schema versions returned"
+                }
             ]
         },
         {
@@ -184,18 +346,65 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Evaluate CDC lag and optionally throttle or resume a stream based on configurable thresholds.",
             "configFields": [
-                {"key": "source_id", "type": "string", "description": "Unique identifier for the CDC source", "required": true},
-                {"key": "action", "type": "select", "description": "Action to take", "options": ["check", "throttle", "resume"], "defaultValue": "check"},
-                {"key": "threshold_lag_bytes", "type": "number", "description": "Lag bytes threshold for critical status (0 = disabled)"},
-                {"key": "threshold_lag_seconds", "type": "number", "description": "Lag seconds threshold for critical status (0 = disabled)"},
-                {"key": "warning_multiplier", "type": "number", "description": "Fraction of threshold at which to emit a warning (default 0.8)"}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "Unique identifier for the CDC source",
+                    "required": true
+                },
+                {
+                    "key": "action",
+                    "type": "select",
+                    "description": "Action to take",
+                    "options": [
+                        "check",
+                        "throttle",
+                        "resume"
+                    ],
+                    "defaultValue": "check"
+                },
+                {
+                    "key": "threshold_lag_bytes",
+                    "type": "number",
+                    "description": "Lag bytes threshold for critical status (0 = disabled)"
+                },
+                {
+                    "key": "threshold_lag_seconds",
+                    "type": "number",
+                    "description": "Lag seconds threshold for critical status (0 = disabled)"
+                },
+                {
+                    "key": "warning_multiplier",
+                    "type": "number",
+                    "description": "Fraction of threshold at which to emit a warning (default 0.8)"
+                }
             ],
             "outputs": [
-                {"key": "source_id", "type": "string", "description": "The CDC source identifier"},
-                {"key": "status", "type": "string", "description": "Backpressure status: healthy, warning, or critical"},
-                {"key": "lag_bytes", "type": "number", "description": "Current lag in bytes"},
-                {"key": "lag_seconds", "type": "number", "description": "Current lag in seconds"},
-                {"key": "action", "type": "string", "description": "Action taken"}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "The CDC source identifier"
+                },
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Backpressure status: healthy, warning, or critical"
+                },
+                {
+                    "key": "lag_bytes",
+                    "type": "number",
+                    "description": "Current lag in bytes"
+                },
+                {
+                    "key": "lag_seconds",
+                    "type": "number",
+                    "description": "Current lag in seconds"
+                },
+                {
+                    "key": "action",
+                    "type": "string",
+                    "description": "Action taken"
+                }
             ]
         },
         {
@@ -203,13 +412,34 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Collect and return health metrics for a CDC source stream.",
             "configFields": [
-                {"key": "source_id", "type": "string", "description": "Unique identifier for the CDC source", "required": true},
-                {"key": "interval", "type": "duration", "description": "Monitoring check interval (e.g. 30s)"}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "Unique identifier for the CDC source",
+                    "required": true
+                },
+                {
+                    "key": "interval",
+                    "type": "duration",
+                    "description": "Monitoring check interval (e.g. 30s)"
+                }
             ],
             "outputs": [
-                {"key": "source_id", "type": "string", "description": "The CDC source identifier"},
-                {"key": "metrics", "type": "map", "description": "Health metrics map (lag, throughput, error_rate)"},
-                {"key": "healthy", "type": "boolean", "description": "Whether the source is currently healthy"}
+                {
+                    "key": "source_id",
+                    "type": "string",
+                    "description": "The CDC source identifier"
+                },
+                {
+                    "key": "metrics",
+                    "type": "map",
+                    "description": "Health metrics map (lag, throughput, error_rate)"
+                },
+                {
+                    "key": "healthy",
+                    "type": "boolean",
+                    "description": "Whether the source is currently healthy"
+                }
             ]
         },
         {
@@ -217,14 +447,45 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Provision a new tenant namespace (schema, database, or row-level based on strategy).",
             "configFields": [
-                {"key": "tenant_id", "type": "string", "description": "Unique identifier for the tenant to provision", "required": true},
-                {"key": "strategy", "type": "select", "description": "Tenancy isolation strategy", "options": ["schema_per_tenant", "db_per_tenant", "row_level"]},
-                {"key": "db_url", "type": "string", "description": "Database connection URL for the target database", "sensitive": true},
-                {"key": "schema_prefix", "type": "string", "description": "Prefix for schema names (schema_per_tenant strategy)"}
+                {
+                    "key": "tenant_id",
+                    "type": "string",
+                    "description": "Unique identifier for the tenant to provision",
+                    "required": true
+                },
+                {
+                    "key": "strategy",
+                    "type": "select",
+                    "description": "Tenancy isolation strategy",
+                    "options": [
+                        "schema_per_tenant",
+                        "db_per_tenant",
+                        "row_level"
+                    ]
+                },
+                {
+                    "key": "db_url",
+                    "type": "string",
+                    "description": "Database connection URL for the target database",
+                    "sensitive": true
+                },
+                {
+                    "key": "schema_prefix",
+                    "type": "string",
+                    "description": "Prefix for schema names (schema_per_tenant strategy)"
+                }
             ],
             "outputs": [
-                {"key": "tenant_id", "type": "string", "description": "The provisioned tenant identifier"},
-                {"key": "status", "type": "string", "description": "Result: 'provisioned'"}
+                {
+                    "key": "tenant_id",
+                    "type": "string",
+                    "description": "The provisioned tenant identifier"
+                },
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'provisioned'"
+                }
             ]
         },
         {
@@ -232,14 +493,49 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Archive or delete a tenant namespace.",
             "configFields": [
-                {"key": "tenant_id", "type": "string", "description": "Unique identifier for the tenant to deprovision", "required": true},
-                {"key": "mode", "type": "select", "description": "Deprovision mode", "options": ["archive", "delete"], "required": true},
-                {"key": "strategy", "type": "select", "description": "Tenancy isolation strategy", "options": ["schema_per_tenant", "db_per_tenant", "row_level"]}
+                {
+                    "key": "tenant_id",
+                    "type": "string",
+                    "description": "Unique identifier for the tenant to deprovision",
+                    "required": true
+                },
+                {
+                    "key": "mode",
+                    "type": "select",
+                    "description": "Deprovision mode",
+                    "options": [
+                        "archive",
+                        "delete"
+                    ],
+                    "required": true
+                },
+                {
+                    "key": "strategy",
+                    "type": "select",
+                    "description": "Tenancy isolation strategy",
+                    "options": [
+                        "schema_per_tenant",
+                        "db_per_tenant",
+                        "row_level"
+                    ]
+                }
             ],
             "outputs": [
-                {"key": "tenant_id", "type": "string", "description": "The deprovisioned tenant identifier"},
-                {"key": "status", "type": "string", "description": "Result: 'deprovisioned'"},
-                {"key": "mode", "type": "string", "description": "Mode used: archive or delete"}
+                {
+                    "key": "tenant_id",
+                    "type": "string",
+                    "description": "The deprovisioned tenant identifier"
+                },
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'deprovisioned'"
+                },
+                {
+                    "key": "mode",
+                    "type": "string",
+                    "description": "Mode used: archive or delete"
+                }
             ]
         },
         {
@@ -247,17 +543,59 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Run schema migrations for one or more tenants.",
             "configFields": [
-                {"key": "tenant_id", "type": "string", "description": "Tenant identifier to migrate (or 'all' for all tenants)", "required": true},
-                {"key": "strategy", "type": "select", "description": "Tenancy isolation strategy", "options": ["schema_per_tenant", "db_per_tenant", "row_level"]},
-                {"key": "migrations_dir", "type": "filepath", "description": "Directory containing migration SQL files"},
-                {"key": "target_version", "type": "string", "description": "Target migration version (empty = latest)"},
-                {"key": "concurrency", "type": "number", "description": "Number of tenants to migrate concurrently"}
+                {
+                    "key": "tenant_id",
+                    "type": "string",
+                    "description": "Tenant identifier to migrate (or 'all' for all tenants)",
+                    "required": true
+                },
+                {
+                    "key": "strategy",
+                    "type": "select",
+                    "description": "Tenancy isolation strategy",
+                    "options": [
+                        "schema_per_tenant",
+                        "db_per_tenant",
+                        "row_level"
+                    ]
+                },
+                {
+                    "key": "migrations_dir",
+                    "type": "filepath",
+                    "description": "Directory containing migration SQL files"
+                },
+                {
+                    "key": "target_version",
+                    "type": "string",
+                    "description": "Target migration version (empty = latest)"
+                },
+                {
+                    "key": "concurrency",
+                    "type": "number",
+                    "description": "Number of tenants to migrate concurrently"
+                }
             ],
             "outputs": [
-                {"key": "tenant_id", "type": "string", "description": "Tenant identifier"},
-                {"key": "status", "type": "string", "description": "Migration result: 'migrated'"},
-                {"key": "applied", "type": "number", "description": "Number of migrations applied"},
-                {"key": "version", "type": "string", "description": "Final migration version"}
+                {
+                    "key": "tenant_id",
+                    "type": "string",
+                    "description": "Tenant identifier"
+                },
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Migration result: 'migrated'"
+                },
+                {
+                    "key": "applied",
+                    "type": "number",
+                    "description": "Number of migrations applied"
+                },
+                {
+                    "key": "version",
+                    "type": "string",
+                    "description": "Final migration version"
+                }
             ]
         },
         {
@@ -265,15 +603,53 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Evaluate whether a tenant meets the criteria for strategy promotion.",
             "configFields": [
-                {"key": "tenant_id", "type": "string", "description": "Unique identifier for the tenant to evaluate", "required": true},
-                {"key": "strategy", "type": "select", "description": "Current tenancy strategy", "options": ["schema_per_tenant", "db_per_tenant", "row_level"]},
-                {"key": "target_strategy", "type": "select", "description": "Target strategy to evaluate for", "options": ["schema_per_tenant", "db_per_tenant"]},
-                {"key": "thresholds", "type": "map", "description": "Promotion threshold configuration (rows, storage_mb, age_days)"}
+                {
+                    "key": "tenant_id",
+                    "type": "string",
+                    "description": "Unique identifier for the tenant to evaluate",
+                    "required": true
+                },
+                {
+                    "key": "strategy",
+                    "type": "select",
+                    "description": "Current tenancy strategy",
+                    "options": [
+                        "schema_per_tenant",
+                        "db_per_tenant",
+                        "row_level"
+                    ]
+                },
+                {
+                    "key": "target_strategy",
+                    "type": "select",
+                    "description": "Target strategy to evaluate for",
+                    "options": [
+                        "schema_per_tenant",
+                        "db_per_tenant"
+                    ]
+                },
+                {
+                    "key": "thresholds",
+                    "type": "map",
+                    "description": "Promotion threshold configuration (rows, storage_mb, age_days)"
+                }
             ],
             "outputs": [
-                {"key": "tenant_id", "type": "string", "description": "Tenant identifier"},
-                {"key": "eligible", "type": "boolean", "description": "Whether the tenant is eligible for promotion"},
-                {"key": "reason", "type": "string", "description": "Reason for eligibility decision"}
+                {
+                    "key": "tenant_id",
+                    "type": "string",
+                    "description": "Tenant identifier"
+                },
+                {
+                    "key": "eligible",
+                    "type": "boolean",
+                    "description": "Whether the tenant is eligible for promotion"
+                },
+                {
+                    "key": "reason",
+                    "type": "string",
+                    "description": "Reason for eligibility decision"
+                }
             ]
         },
         {
@@ -281,14 +657,43 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Promote a tenant from a shared strategy to a dedicated strategy.",
             "configFields": [
-                {"key": "tenant_id", "type": "string", "description": "Unique identifier for the tenant to promote", "required": true},
-                {"key": "target_strategy", "type": "select", "description": "Target tenancy strategy after promotion", "options": ["schema_per_tenant", "db_per_tenant"]}
+                {
+                    "key": "tenant_id",
+                    "type": "string",
+                    "description": "Unique identifier for the tenant to promote",
+                    "required": true
+                },
+                {
+                    "key": "target_strategy",
+                    "type": "select",
+                    "description": "Target tenancy strategy after promotion",
+                    "options": [
+                        "schema_per_tenant",
+                        "db_per_tenant"
+                    ]
+                }
             ],
             "outputs": [
-                {"key": "tenant_id", "type": "string", "description": "Tenant identifier"},
-                {"key": "status", "type": "string", "description": "Result: 'promoted'"},
-                {"key": "from_strategy", "type": "string", "description": "Previous strategy"},
-                {"key": "to_strategy", "type": "string", "description": "New strategy after promotion"}
+                {
+                    "key": "tenant_id",
+                    "type": "string",
+                    "description": "Tenant identifier"
+                },
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'promoted'"
+                },
+                {
+                    "key": "from_strategy",
+                    "type": "string",
+                    "description": "Previous strategy"
+                },
+                {
+                    "key": "to_strategy",
+                    "type": "string",
+                    "description": "New strategy after promotion"
+                }
             ]
         },
         {
@@ -296,14 +701,43 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Demote a tenant from a dedicated strategy back to a shared strategy.",
             "configFields": [
-                {"key": "tenant_id", "type": "string", "description": "Unique identifier for the tenant to demote", "required": true},
-                {"key": "target_strategy", "type": "select", "description": "Target tenancy strategy after demotion", "options": ["schema_per_tenant", "row_level"]}
+                {
+                    "key": "tenant_id",
+                    "type": "string",
+                    "description": "Unique identifier for the tenant to demote",
+                    "required": true
+                },
+                {
+                    "key": "target_strategy",
+                    "type": "select",
+                    "description": "Target tenancy strategy after demotion",
+                    "options": [
+                        "schema_per_tenant",
+                        "row_level"
+                    ]
+                }
             ],
             "outputs": [
-                {"key": "tenant_id", "type": "string", "description": "Tenant identifier"},
-                {"key": "status", "type": "string", "description": "Result: 'demoted'"},
-                {"key": "from_strategy", "type": "string", "description": "Previous strategy"},
-                {"key": "to_strategy", "type": "string", "description": "New strategy after demotion"}
+                {
+                    "key": "tenant_id",
+                    "type": "string",
+                    "description": "Tenant identifier"
+                },
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'demoted'"
+                },
+                {
+                    "key": "from_strategy",
+                    "type": "string",
+                    "description": "Previous strategy"
+                },
+                {
+                    "key": "to_strategy",
+                    "type": "string",
+                    "description": "New strategy after demotion"
+                }
             ]
         },
         {
@@ -311,17 +745,55 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Create a new table in the Iceberg lakehouse catalog.",
             "configFields": [
-                {"key": "catalog", "type": "string", "description": "Name of the catalog.iceberg module to use", "required": true},
-                {"key": "namespace", "type": "string", "description": "Namespace (database) for the table"},
-                {"key": "table", "type": "string", "description": "Table name to create", "required": true},
-                {"key": "schema", "type": "json", "description": "Iceberg schema definition with fields array"},
-                {"key": "location", "type": "string", "description": "Object storage location for table data"},
-                {"key": "properties", "type": "map", "description": "Additional Iceberg table properties"}
+                {
+                    "key": "catalog",
+                    "type": "string",
+                    "description": "Name of the catalog.iceberg module to use",
+                    "required": true
+                },
+                {
+                    "key": "namespace",
+                    "type": "string",
+                    "description": "Namespace (database) for the table"
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table name to create",
+                    "required": true
+                },
+                {
+                    "key": "schema",
+                    "type": "json",
+                    "description": "Iceberg schema definition with fields array"
+                },
+                {
+                    "key": "location",
+                    "type": "string",
+                    "description": "Object storage location for table data"
+                },
+                {
+                    "key": "properties",
+                    "type": "map",
+                    "description": "Additional Iceberg table properties"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'created'"},
-                {"key": "tableUUID", "type": "string", "description": "Iceberg table UUID"},
-                {"key": "location", "type": "string", "description": "Storage location of the created table"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'created'"
+                },
+                {
+                    "key": "tableUUID",
+                    "type": "string",
+                    "description": "Iceberg table UUID"
+                },
+                {
+                    "key": "location",
+                    "type": "string",
+                    "description": "Storage location of the created table"
+                }
             ]
         },
         {
@@ -329,15 +801,45 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Apply schema evolution changes to an existing Iceberg table.",
             "configFields": [
-                {"key": "catalog", "type": "string", "description": "Name of the catalog.iceberg module to use", "required": true},
-                {"key": "namespace", "type": "string", "description": "Namespace (database) for the table"},
-                {"key": "table", "type": "string", "description": "Table name to evolve", "required": true},
-                {"key": "changes", "type": "array", "description": "List of schema change objects (add_column, drop_column, rename_column)"}
+                {
+                    "key": "catalog",
+                    "type": "string",
+                    "description": "Name of the catalog.iceberg module to use",
+                    "required": true
+                },
+                {
+                    "key": "namespace",
+                    "type": "string",
+                    "description": "Namespace (database) for the table"
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table name to evolve",
+                    "required": true
+                },
+                {
+                    "key": "changes",
+                    "type": "array",
+                    "description": "List of schema change objects (add_column, drop_column, rename_column)"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'evolved'"},
-                {"key": "schemaId", "type": "number", "description": "New schema ID after evolution"},
-                {"key": "changes", "type": "number", "description": "Number of changes applied"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'evolved'"
+                },
+                {
+                    "key": "schemaId",
+                    "type": "number",
+                    "description": "New schema ID after evolution"
+                },
+                {
+                    "key": "changes",
+                    "type": "number",
+                    "description": "Number of changes applied"
+                }
             ]
         },
         {
@@ -345,17 +847,61 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Write records to an Iceberg lakehouse table.",
             "configFields": [
-                {"key": "catalog", "type": "string", "description": "Name of the catalog.iceberg module to use", "required": true},
-                {"key": "namespace", "type": "string", "description": "Namespace (database) for the table"},
-                {"key": "table", "type": "string", "description": "Target table name", "required": true},
-                {"key": "records", "type": "array", "description": "Records to write (array of objects)"},
-                {"key": "records_from", "type": "string", "description": "Template expression to source records from step outputs"},
-                {"key": "format", "type": "select", "description": "Write format", "options": ["parquet", "avro", "orc"], "defaultValue": "parquet"}
+                {
+                    "key": "catalog",
+                    "type": "string",
+                    "description": "Name of the catalog.iceberg module to use",
+                    "required": true
+                },
+                {
+                    "key": "namespace",
+                    "type": "string",
+                    "description": "Namespace (database) for the table"
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Target table name",
+                    "required": true
+                },
+                {
+                    "key": "records",
+                    "type": "array",
+                    "description": "Records to write (array of objects)"
+                },
+                {
+                    "key": "records_from",
+                    "type": "string",
+                    "description": "Template expression to source records from step outputs"
+                },
+                {
+                    "key": "format",
+                    "type": "select",
+                    "description": "Write format",
+                    "options": [
+                        "parquet",
+                        "avro",
+                        "orc"
+                    ],
+                    "defaultValue": "parquet"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'written'"},
-                {"key": "rows_written", "type": "number", "description": "Number of rows written"},
-                {"key": "snapshot_id", "type": "string", "description": "ID of the snapshot created by this write"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'written'"
+                },
+                {
+                    "key": "rows_written",
+                    "type": "number",
+                    "description": "Number of rows written"
+                },
+                {
+                    "key": "snapshot_id",
+                    "type": "string",
+                    "description": "ID of the snapshot created by this write"
+                }
             ]
         },
         {
@@ -363,16 +909,55 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Compact small data files in an Iceberg table into larger ones.",
             "configFields": [
-                {"key": "catalog", "type": "string", "description": "Name of the catalog.iceberg module to use", "required": true},
-                {"key": "namespace", "type": "string", "description": "Namespace (database) for the table"},
-                {"key": "table", "type": "string", "description": "Table name to compact", "required": true},
-                {"key": "strategy", "type": "select", "description": "Compaction strategy", "options": ["binpack", "sort", "z-order"]},
-                {"key": "target_file_size_mb", "type": "number", "description": "Target output file size in megabytes"}
+                {
+                    "key": "catalog",
+                    "type": "string",
+                    "description": "Name of the catalog.iceberg module to use",
+                    "required": true
+                },
+                {
+                    "key": "namespace",
+                    "type": "string",
+                    "description": "Namespace (database) for the table"
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table name to compact",
+                    "required": true
+                },
+                {
+                    "key": "strategy",
+                    "type": "select",
+                    "description": "Compaction strategy",
+                    "options": [
+                        "binpack",
+                        "sort",
+                        "z-order"
+                    ]
+                },
+                {
+                    "key": "target_file_size_mb",
+                    "type": "number",
+                    "description": "Target output file size in megabytes"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'compacted'"},
-                {"key": "files_rewritten", "type": "number", "description": "Number of data files rewritten"},
-                {"key": "bytes_rewritten", "type": "number", "description": "Total bytes rewritten"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'compacted'"
+                },
+                {
+                    "key": "files_rewritten",
+                    "type": "number",
+                    "description": "Number of data files rewritten"
+                },
+                {
+                    "key": "bytes_rewritten",
+                    "type": "number",
+                    "description": "Total bytes rewritten"
+                }
             ]
         },
         {
@@ -380,15 +965,45 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Create a named snapshot of an Iceberg table for time-travel or restore.",
             "configFields": [
-                {"key": "catalog", "type": "string", "description": "Name of the catalog.iceberg module to use", "required": true},
-                {"key": "namespace", "type": "string", "description": "Namespace (database) for the table"},
-                {"key": "table", "type": "string", "description": "Table name to snapshot", "required": true},
-                {"key": "snapshot_name", "type": "string", "description": "Optional name for the snapshot"}
+                {
+                    "key": "catalog",
+                    "type": "string",
+                    "description": "Name of the catalog.iceberg module to use",
+                    "required": true
+                },
+                {
+                    "key": "namespace",
+                    "type": "string",
+                    "description": "Namespace (database) for the table"
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table name to snapshot",
+                    "required": true
+                },
+                {
+                    "key": "snapshot_name",
+                    "type": "string",
+                    "description": "Optional name for the snapshot"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'snapshot_created'"},
-                {"key": "snapshot_id", "type": "string", "description": "ID of the created snapshot"},
-                {"key": "timestamp", "type": "string", "description": "ISO-8601 timestamp of the snapshot"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'snapshot_created'"
+                },
+                {
+                    "key": "snapshot_id",
+                    "type": "string",
+                    "description": "ID of the created snapshot"
+                },
+                {
+                    "key": "timestamp",
+                    "type": "string",
+                    "description": "ISO-8601 timestamp of the snapshot"
+                }
             ]
         },
         {
@@ -396,16 +1011,50 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Execute a SQL query against an Iceberg lakehouse catalog.",
             "configFields": [
-                {"key": "catalog", "type": "string", "description": "Name of the catalog.iceberg module to use", "required": true},
-                {"key": "query", "type": "sql", "description": "SQL SELECT query to execute", "required": true},
-                {"key": "params", "type": "array", "description": "Positional query parameters"},
-                {"key": "limit", "type": "number", "description": "Maximum number of rows to return"},
-                {"key": "as_of", "type": "string", "description": "Snapshot ID or timestamp for time-travel queries"}
+                {
+                    "key": "catalog",
+                    "type": "string",
+                    "description": "Name of the catalog.iceberg module to use",
+                    "required": true
+                },
+                {
+                    "key": "query",
+                    "type": "sql",
+                    "description": "SQL SELECT query to execute",
+                    "required": true
+                },
+                {
+                    "key": "params",
+                    "type": "array",
+                    "description": "Positional query parameters"
+                },
+                {
+                    "key": "limit",
+                    "type": "number",
+                    "description": "Maximum number of rows to return"
+                },
+                {
+                    "key": "as_of",
+                    "type": "string",
+                    "description": "Snapshot ID or timestamp for time-travel queries"
+                }
             ],
             "outputs": [
-                {"key": "rows", "type": "array", "description": "Query result rows as array of objects"},
-                {"key": "count", "type": "number", "description": "Number of rows returned"},
-                {"key": "columns", "type": "array", "description": "Column names in result order"}
+                {
+                    "key": "rows",
+                    "type": "array",
+                    "description": "Query result rows as array of objects"
+                },
+                {
+                    "key": "count",
+                    "type": "number",
+                    "description": "Number of rows returned"
+                },
+                {
+                    "key": "columns",
+                    "type": "array",
+                    "description": "Column names in result order"
+                }
             ]
         },
         {
@@ -413,16 +1062,50 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Expire old Iceberg table snapshots to reclaim storage space.",
             "configFields": [
-                {"key": "catalog", "type": "string", "description": "Name of the catalog.iceberg module to use", "required": true},
-                {"key": "namespace", "type": "string", "description": "Namespace (database) for the table"},
-                {"key": "table", "type": "string", "description": "Table name to expire snapshots from", "required": true},
-                {"key": "older_than", "type": "duration", "description": "Expire snapshots older than this duration (e.g. 168h for 7 days)"},
-                {"key": "retain_last", "type": "number", "description": "Minimum number of snapshots to retain regardless of age"}
+                {
+                    "key": "catalog",
+                    "type": "string",
+                    "description": "Name of the catalog.iceberg module to use",
+                    "required": true
+                },
+                {
+                    "key": "namespace",
+                    "type": "string",
+                    "description": "Namespace (database) for the table"
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table name to expire snapshots from",
+                    "required": true
+                },
+                {
+                    "key": "older_than",
+                    "type": "duration",
+                    "description": "Expire snapshots older than this duration (e.g. 168h for 7 days)"
+                },
+                {
+                    "key": "retain_last",
+                    "type": "number",
+                    "description": "Minimum number of snapshots to retain regardless of age"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'expired'"},
-                {"key": "expired_snapshots", "type": "number", "description": "Number of snapshots removed"},
-                {"key": "deleted_data_files", "type": "number", "description": "Number of orphan data files deleted"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'expired'"
+                },
+                {
+                    "key": "expired_snapshots",
+                    "type": "number",
+                    "description": "Number of snapshots removed"
+                },
+                {
+                    "key": "deleted_data_files",
+                    "type": "number",
+                    "description": "Number of orphan data files deleted"
+                }
             ]
         },
         {
@@ -430,16 +1113,51 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Write a single time-series data point to the configured time-series module.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries module to write to", "required": true},
-                {"key": "measurement", "type": "string", "description": "Measurement or table name", "required": true},
-                {"key": "tags", "type": "map", "description": "Tag key/value pairs (indexed metadata)"},
-                {"key": "fields", "type": "map", "description": "Field key/value pairs (measurement values)", "required": true},
-                {"key": "timestamp", "type": "string", "description": "Data point timestamp (RFC3339 or Unix nanoseconds; empty = now)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries module to write to",
+                    "required": true
+                },
+                {
+                    "key": "measurement",
+                    "type": "string",
+                    "description": "Measurement or table name",
+                    "required": true
+                },
+                {
+                    "key": "tags",
+                    "type": "map",
+                    "description": "Tag key/value pairs (indexed metadata)"
+                },
+                {
+                    "key": "fields",
+                    "type": "map",
+                    "description": "Field key/value pairs (measurement values)",
+                    "required": true
+                },
+                {
+                    "key": "timestamp",
+                    "type": "string",
+                    "description": "Data point timestamp (RFC3339 or Unix nanoseconds; empty = now)"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'written'"},
-                {"key": "measurement", "type": "string", "description": "Measurement name"},
-                {"key": "timestamp", "type": "string", "description": "Timestamp of the written point"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'written'"
+                },
+                {
+                    "key": "measurement",
+                    "type": "string",
+                    "description": "Measurement name"
+                },
+                {
+                    "key": "timestamp",
+                    "type": "string",
+                    "description": "Timestamp of the written point"
+                }
             ]
         },
         {
@@ -447,12 +1165,30 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Write a batch of time-series data points to the configured time-series module.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries module to write to", "required": true},
-                {"key": "measurements", "type": "array", "description": "Array of data point objects (each with measurement, tags, fields, timestamp)", "required": true}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries module to write to",
+                    "required": true
+                },
+                {
+                    "key": "measurements",
+                    "type": "array",
+                    "description": "Array of data point objects (each with measurement, tags, fields, timestamp)",
+                    "required": true
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'written'"},
-                {"key": "count", "type": "number", "description": "Number of data points written"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'written'"
+                },
+                {
+                    "key": "count",
+                    "type": "number",
+                    "description": "Number of data points written"
+                }
             ]
         },
         {
@@ -460,15 +1196,45 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Execute a time-series query (Flux, SQL, or InfluxQL) against the configured module.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries module to query", "required": true},
-                {"key": "query", "type": "string", "description": "Query string (Flux, SQL, or InfluxQL depending on backend)", "required": true},
-                {"key": "start", "type": "string", "description": "Query start time (RFC3339 or relative e.g. -1h)"},
-                {"key": "end", "type": "string", "description": "Query end time (RFC3339 or relative; empty = now)"},
-                {"key": "params", "type": "map", "description": "Named query parameters"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries module to query",
+                    "required": true
+                },
+                {
+                    "key": "query",
+                    "type": "string",
+                    "description": "Query string (Flux, SQL, or InfluxQL depending on backend)",
+                    "required": true
+                },
+                {
+                    "key": "start",
+                    "type": "string",
+                    "description": "Query start time (RFC3339 or relative e.g. -1h)"
+                },
+                {
+                    "key": "end",
+                    "type": "string",
+                    "description": "Query end time (RFC3339 or relative; empty = now)"
+                },
+                {
+                    "key": "params",
+                    "type": "map",
+                    "description": "Named query parameters"
+                }
             ],
             "outputs": [
-                {"key": "rows", "type": "array", "description": "Query result rows"},
-                {"key": "count", "type": "number", "description": "Number of rows returned"}
+                {
+                    "key": "rows",
+                    "type": "array",
+                    "description": "Query result rows"
+                },
+                {
+                    "key": "count",
+                    "type": "number",
+                    "description": "Number of rows returned"
+                }
             ]
         },
         {
@@ -476,15 +1242,56 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Downsample high-resolution time-series data into a lower-resolution summary table.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries module", "required": true},
-                {"key": "source_measurement", "type": "string", "description": "Source measurement/table name", "required": true},
-                {"key": "dest_measurement", "type": "string", "description": "Destination summary measurement/table name", "required": true},
-                {"key": "window", "type": "duration", "description": "Aggregation window (e.g. 1h, 1d)", "required": true},
-                {"key": "function", "type": "select", "description": "Aggregation function", "options": ["mean", "sum", "min", "max", "count", "first", "last"]}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries module",
+                    "required": true
+                },
+                {
+                    "key": "source_measurement",
+                    "type": "string",
+                    "description": "Source measurement/table name",
+                    "required": true
+                },
+                {
+                    "key": "dest_measurement",
+                    "type": "string",
+                    "description": "Destination summary measurement/table name",
+                    "required": true
+                },
+                {
+                    "key": "window",
+                    "type": "duration",
+                    "description": "Aggregation window (e.g. 1h, 1d)",
+                    "required": true
+                },
+                {
+                    "key": "function",
+                    "type": "select",
+                    "description": "Aggregation function",
+                    "options": [
+                        "mean",
+                        "sum",
+                        "min",
+                        "max",
+                        "count",
+                        "first",
+                        "last"
+                    ]
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'downsampled'"},
-                {"key": "rows_created", "type": "number", "description": "Number of summary rows written"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'downsampled'"
+                },
+                {
+                    "key": "rows_created",
+                    "type": "number",
+                    "description": "Number of summary rows written"
+                }
             ]
         },
         {
@@ -492,13 +1299,35 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Apply a retention policy to delete data older than the specified duration.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries module", "required": true},
-                {"key": "measurement", "type": "string", "description": "Measurement to apply retention to (empty = all)"},
-                {"key": "older_than", "type": "duration", "description": "Delete data older than this duration (e.g. 720h for 30 days)", "required": true}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries module",
+                    "required": true
+                },
+                {
+                    "key": "measurement",
+                    "type": "string",
+                    "description": "Measurement to apply retention to (empty = all)"
+                },
+                {
+                    "key": "older_than",
+                    "type": "duration",
+                    "description": "Delete data older than this duration (e.g. 720h for 30 days)",
+                    "required": true
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'applied'"},
-                {"key": "rows_deleted", "type": "number", "description": "Estimated number of rows deleted"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'applied'"
+                },
+                {
+                    "key": "rows_deleted",
+                    "type": "number",
+                    "description": "Estimated number of rows deleted"
+                }
             ]
         },
         {
@@ -506,14 +1335,41 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Create or update a continuous query / scheduled task that auto-downsamples data.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries module", "required": true},
-                {"key": "name", "type": "string", "description": "Continuous query or task name", "required": true},
-                {"key": "query", "type": "string", "description": "Aggregation query to run on schedule", "required": true},
-                {"key": "every", "type": "duration", "description": "Run interval (e.g. 1h)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries module",
+                    "required": true
+                },
+                {
+                    "key": "name",
+                    "type": "string",
+                    "description": "Continuous query or task name",
+                    "required": true
+                },
+                {
+                    "key": "query",
+                    "type": "string",
+                    "description": "Aggregation query to run on schedule",
+                    "required": true
+                },
+                {
+                    "key": "every",
+                    "type": "duration",
+                    "description": "Run interval (e.g. 1h)"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'created' or 'updated'"},
-                {"key": "name", "type": "string", "description": "Continuous query name"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'created' or 'updated'"
+                },
+                {
+                    "key": "name",
+                    "type": "string",
+                    "description": "Continuous query name"
+                }
             ]
         },
         {
@@ -521,14 +1377,41 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Archive old time-series data to a cold tier (object storage or separate table).",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries module", "required": true},
-                {"key": "measurement", "type": "string", "description": "Measurement to archive", "required": true},
-                {"key": "older_than", "type": "duration", "description": "Archive data older than this duration", "required": true},
-                {"key": "dest_bucket", "type": "string", "description": "Destination object storage bucket or table prefix"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries module",
+                    "required": true
+                },
+                {
+                    "key": "measurement",
+                    "type": "string",
+                    "description": "Measurement to archive",
+                    "required": true
+                },
+                {
+                    "key": "older_than",
+                    "type": "duration",
+                    "description": "Archive data older than this duration",
+                    "required": true
+                },
+                {
+                    "key": "dest_bucket",
+                    "type": "string",
+                    "description": "Destination object storage bucket or table prefix"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'archived'"},
-                {"key": "rows_archived", "type": "number", "description": "Number of rows moved to archive"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'archived'"
+                },
+                {
+                    "key": "rows_archived",
+                    "type": "number",
+                    "description": "Number of rows moved to archive"
+                }
             ]
         },
         {
@@ -536,13 +1419,34 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Return the storage tier breakdown (hot/warm/cold) for a time-series module.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries module", "required": true}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries module",
+                    "required": true
+                }
             ],
             "outputs": [
-                {"key": "hot_rows", "type": "number", "description": "Number of rows in hot tier"},
-                {"key": "warm_rows", "type": "number", "description": "Number of rows in warm tier"},
-                {"key": "cold_rows", "type": "number", "description": "Number of rows in cold/archive tier"},
-                {"key": "tiers", "type": "map", "description": "Full tier metrics map"}
+                {
+                    "key": "hot_rows",
+                    "type": "number",
+                    "description": "Number of rows in hot tier"
+                },
+                {
+                    "key": "warm_rows",
+                    "type": "number",
+                    "description": "Number of rows in warm tier"
+                },
+                {
+                    "key": "cold_rows",
+                    "type": "number",
+                    "description": "Number of rows in cold/archive tier"
+                },
+                {
+                    "key": "tiers",
+                    "type": "map",
+                    "description": "Full tier metrics map"
+                }
             ]
         },
         {
@@ -550,14 +1454,41 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Create or replace a ClickHouse MaterializedView for continuous aggregation.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries.clickhouse module", "required": true},
-                {"key": "view_name", "type": "string", "description": "Name of the materialized view to create", "required": true},
-                {"key": "query", "type": "sql", "description": "SELECT query for the materialized view", "required": true},
-                {"key": "dest_table", "type": "string", "description": "Destination table for aggregated results"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries.clickhouse module",
+                    "required": true
+                },
+                {
+                    "key": "view_name",
+                    "type": "string",
+                    "description": "Name of the materialized view to create",
+                    "required": true
+                },
+                {
+                    "key": "query",
+                    "type": "sql",
+                    "description": "SELECT query for the materialized view",
+                    "required": true
+                },
+                {
+                    "key": "dest_table",
+                    "type": "string",
+                    "description": "Destination table for aggregated results"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'created' or 'replaced'"},
-                {"key": "view_name", "type": "string", "description": "Name of the created view"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'created' or 'replaced'"
+                },
+                {
+                    "key": "view_name",
+                    "type": "string",
+                    "description": "Name of the created view"
+                }
             ]
         },
         {
@@ -565,12 +1496,30 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Submit a Druid batch or streaming ingestion task.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries.druid module", "required": true},
-                {"key": "spec", "type": "json", "description": "Druid ingestion spec (native JSON format)", "required": true}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries.druid module",
+                    "required": true
+                },
+                {
+                    "key": "spec",
+                    "type": "json",
+                    "description": "Druid ingestion spec (native JSON format)",
+                    "required": true
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Task status"},
-                {"key": "task_id", "type": "string", "description": "Druid task identifier"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Task status"
+                },
+                {
+                    "key": "task_id",
+                    "type": "string",
+                    "description": "Druid task identifier"
+                }
             ]
         },
         {
@@ -578,13 +1527,35 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Execute a Druid SQL or native query.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries.druid module", "required": true},
-                {"key": "query", "type": "string", "description": "Druid SQL or native query JSON", "required": true},
-                {"key": "params", "type": "array", "description": "Query parameters for SQL queries"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries.druid module",
+                    "required": true
+                },
+                {
+                    "key": "query",
+                    "type": "string",
+                    "description": "Druid SQL or native query JSON",
+                    "required": true
+                },
+                {
+                    "key": "params",
+                    "type": "array",
+                    "description": "Query parameters for SQL queries"
+                }
             ],
             "outputs": [
-                {"key": "rows", "type": "array", "description": "Query result rows"},
-                {"key": "count", "type": "number", "description": "Number of rows returned"}
+                {
+                    "key": "rows",
+                    "type": "array",
+                    "description": "Query result rows"
+                },
+                {
+                    "key": "count",
+                    "type": "number",
+                    "description": "Number of rows returned"
+                }
             ]
         },
         {
@@ -592,13 +1563,35 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Create or update a Druid datasource specification.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries.druid module", "required": true},
-                {"key": "name", "type": "string", "description": "Datasource name", "required": true},
-                {"key": "spec", "type": "json", "description": "Datasource spec object (granularity, dimensions, metrics)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries.druid module",
+                    "required": true
+                },
+                {
+                    "key": "name",
+                    "type": "string",
+                    "description": "Datasource name",
+                    "required": true
+                },
+                {
+                    "key": "spec",
+                    "type": "json",
+                    "description": "Datasource spec object (granularity, dimensions, metrics)"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'created' or 'updated'"},
-                {"key": "datasource", "type": "string", "description": "Datasource name"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'created' or 'updated'"
+                },
+                {
+                    "key": "datasource",
+                    "type": "string",
+                    "description": "Datasource name"
+                }
             ]
         },
         {
@@ -606,13 +1599,35 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Trigger a Druid compaction task for a datasource to optimize segment storage.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the timeseries.druid module", "required": true},
-                {"key": "datasource", "type": "string", "description": "Datasource to compact", "required": true},
-                {"key": "interval", "type": "string", "description": "ISO-8601 interval to compact (e.g. 2024-01-01/2024-02-01; empty = all)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the timeseries.druid module",
+                    "required": true
+                },
+                {
+                    "key": "datasource",
+                    "type": "string",
+                    "description": "Datasource to compact",
+                    "required": true
+                },
+                {
+                    "key": "interval",
+                    "type": "string",
+                    "description": "ISO-8601 interval to compact (e.g. 2024-01-01/2024-02-01; empty = all)"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'submitted'"},
-                {"key": "task_id", "type": "string", "description": "Druid compaction task identifier"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'submitted'"
+                },
+                {
+                    "key": "task_id",
+                    "type": "string",
+                    "description": "Druid compaction task identifier"
+                }
             ]
         },
         {
@@ -620,15 +1635,51 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Register a new schema version in the Schema Registry.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the catalog.schema_registry module", "required": true},
-                {"key": "subject", "type": "string", "description": "Schema Registry subject name", "required": true},
-                {"key": "schema", "type": "string", "description": "Schema definition (Avro JSON, JSON Schema, or Protobuf IDL)", "required": true},
-                {"key": "format", "type": "select", "description": "Schema format", "options": ["avro", "json", "protobuf"]}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the catalog.schema_registry module",
+                    "required": true
+                },
+                {
+                    "key": "subject",
+                    "type": "string",
+                    "description": "Schema Registry subject name",
+                    "required": true
+                },
+                {
+                    "key": "schema",
+                    "type": "string",
+                    "description": "Schema definition (Avro JSON, JSON Schema, or Protobuf IDL)",
+                    "required": true
+                },
+                {
+                    "key": "format",
+                    "type": "select",
+                    "description": "Schema format",
+                    "options": [
+                        "avro",
+                        "json",
+                        "protobuf"
+                    ]
+                }
             ],
             "outputs": [
-                {"key": "id", "type": "number", "description": "Registered schema ID"},
-                {"key": "subject", "type": "string", "description": "Schema subject"},
-                {"key": "version", "type": "number", "description": "Schema version number"}
+                {
+                    "key": "id",
+                    "type": "number",
+                    "description": "Registered schema ID"
+                },
+                {
+                    "key": "subject",
+                    "type": "string",
+                    "description": "Schema subject"
+                },
+                {
+                    "key": "version",
+                    "type": "number",
+                    "description": "Schema version number"
+                }
             ]
         },
         {
@@ -636,14 +1687,40 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Validate a payload against a schema version in the Schema Registry.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the catalog.schema_registry module", "required": true},
-                {"key": "subject", "type": "string", "description": "Schema Registry subject name", "required": true},
-                {"key": "version", "type": "string", "description": "Schema version to validate against (number or 'latest')"},
-                {"key": "data", "type": "json", "description": "Data to validate (inline JSON or template expression)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the catalog.schema_registry module",
+                    "required": true
+                },
+                {
+                    "key": "subject",
+                    "type": "string",
+                    "description": "Schema Registry subject name",
+                    "required": true
+                },
+                {
+                    "key": "version",
+                    "type": "string",
+                    "description": "Schema version to validate against (number or 'latest')"
+                },
+                {
+                    "key": "data",
+                    "type": "json",
+                    "description": "Data to validate (inline JSON or template expression)"
+                }
             ],
             "outputs": [
-                {"key": "valid", "type": "boolean", "description": "Whether the data is valid against the schema"},
-                {"key": "errors", "type": "array", "description": "Validation error messages (empty if valid)"}
+                {
+                    "key": "valid",
+                    "type": "boolean",
+                    "description": "Whether the data is valid against the schema"
+                },
+                {
+                    "key": "errors",
+                    "type": "array",
+                    "description": "Validation error messages (empty if valid)"
+                }
             ]
         },
         {
@@ -651,14 +1728,40 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Execute a Cypher or Gremlin query against the graph database.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the graph.neo4j module", "required": true},
-                {"key": "query", "type": "string", "description": "Cypher or Gremlin query string", "required": true},
-                {"key": "params", "type": "map", "description": "Query parameters (named parameters map)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the graph.neo4j module",
+                    "required": true
+                },
+                {
+                    "key": "query",
+                    "type": "string",
+                    "description": "Cypher or Gremlin query string",
+                    "required": true
+                },
+                {
+                    "key": "params",
+                    "type": "map",
+                    "description": "Query parameters (named parameters map)"
+                }
             ],
             "outputs": [
-                {"key": "records", "type": "array", "description": "Query result records"},
-                {"key": "count", "type": "number", "description": "Number of records returned"},
-                {"key": "summary", "type": "map", "description": "Query execution summary (counters, time)"}
+                {
+                    "key": "records",
+                    "type": "array",
+                    "description": "Query result records"
+                },
+                {
+                    "key": "count",
+                    "type": "number",
+                    "description": "Number of records returned"
+                },
+                {
+                    "key": "summary",
+                    "type": "map",
+                    "description": "Query execution summary (counters, time)"
+                }
             ]
         },
         {
@@ -666,15 +1769,49 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Write nodes and/or relationships to the graph database.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the graph.neo4j module", "required": true},
-                {"key": "nodes", "type": "array", "description": "Nodes to create or merge (each with labels and properties)"},
-                {"key": "relationships", "type": "array", "description": "Relationships to create or merge (each with type, from_id, to_id, properties)"},
-                {"key": "mode", "type": "select", "description": "Write mode: create or merge", "options": ["create", "merge"], "defaultValue": "merge"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the graph.neo4j module",
+                    "required": true
+                },
+                {
+                    "key": "nodes",
+                    "type": "array",
+                    "description": "Nodes to create or merge (each with labels and properties)"
+                },
+                {
+                    "key": "relationships",
+                    "type": "array",
+                    "description": "Relationships to create or merge (each with type, from_id, to_id, properties)"
+                },
+                {
+                    "key": "mode",
+                    "type": "select",
+                    "description": "Write mode: create or merge",
+                    "options": [
+                        "create",
+                        "merge"
+                    ],
+                    "defaultValue": "merge"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'written'"},
-                {"key": "nodes_created", "type": "number", "description": "Number of nodes created"},
-                {"key": "relationships_created", "type": "number", "description": "Number of relationships created"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'written'"
+                },
+                {
+                    "key": "nodes_created",
+                    "type": "number",
+                    "description": "Number of nodes created"
+                },
+                {
+                    "key": "relationships_created",
+                    "type": "number",
+                    "description": "Number of relationships created"
+                }
             ]
         },
         {
@@ -682,15 +1819,50 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Bulk-import nodes and relationships from a structured data source into the graph database.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the graph.neo4j module", "required": true},
-                {"key": "source", "type": "string", "description": "Source data: inline JSON, file path, or template expression", "required": true},
-                {"key": "format", "type": "select", "description": "Input format", "options": ["json", "csv", "graphml"]},
-                {"key": "batch_size", "type": "number", "description": "Number of nodes/relationships per transaction batch"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the graph.neo4j module",
+                    "required": true
+                },
+                {
+                    "key": "source",
+                    "type": "string",
+                    "description": "Source data: inline JSON, file path, or template expression",
+                    "required": true
+                },
+                {
+                    "key": "format",
+                    "type": "select",
+                    "description": "Input format",
+                    "options": [
+                        "json",
+                        "csv",
+                        "graphml"
+                    ]
+                },
+                {
+                    "key": "batch_size",
+                    "type": "number",
+                    "description": "Number of nodes/relationships per transaction batch"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'imported'"},
-                {"key": "nodes_imported", "type": "number", "description": "Number of nodes imported"},
-                {"key": "relationships_imported", "type": "number", "description": "Number of relationships imported"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'imported'"
+                },
+                {
+                    "key": "nodes_imported",
+                    "type": "number",
+                    "description": "Number of nodes imported"
+                },
+                {
+                    "key": "relationships_imported",
+                    "type": "number",
+                    "description": "Number of relationships imported"
+                }
             ]
         },
         {
@@ -698,13 +1870,36 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Extract named entities from text using rule-based NLP and write them to the graph database.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the graph.neo4j module", "required": true},
-                {"key": "text", "type": "string", "description": "Input text to extract entities from", "required": true},
-                {"key": "entity_types", "type": "array", "description": "Entity types to extract (e.g. PERSON, ORG, LOCATION)", "arrayItemType": "string"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the graph.neo4j module",
+                    "required": true
+                },
+                {
+                    "key": "text",
+                    "type": "string",
+                    "description": "Input text to extract entities from",
+                    "required": true
+                },
+                {
+                    "key": "entity_types",
+                    "type": "array",
+                    "description": "Entity types to extract (e.g. PERSON, ORG, LOCATION)",
+                    "arrayItemType": "string"
+                }
             ],
             "outputs": [
-                {"key": "entities", "type": "array", "description": "Extracted entities with type, text, and span"},
-                {"key": "count", "type": "number", "description": "Total entities extracted"}
+                {
+                    "key": "entities",
+                    "type": "array",
+                    "description": "Extracted entities with type, text, and span"
+                },
+                {
+                    "key": "count",
+                    "type": "number",
+                    "description": "Total entities extracted"
+                }
             ]
         },
         {
@@ -712,16 +1907,51 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Extract named entities from text using an LLM and write them to the graph database.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the graph.neo4j module", "required": true},
-                {"key": "text", "type": "string", "description": "Input text to extract entities from", "required": true},
-                {"key": "model", "type": "string", "description": "LLM model identifier (e.g. gpt-4o)"},
-                {"key": "entity_types", "type": "array", "description": "Entity types to extract", "arrayItemType": "string"},
-                {"key": "system_prompt", "type": "string", "description": "Custom system prompt for entity extraction"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the graph.neo4j module",
+                    "required": true
+                },
+                {
+                    "key": "text",
+                    "type": "string",
+                    "description": "Input text to extract entities from",
+                    "required": true
+                },
+                {
+                    "key": "model",
+                    "type": "string",
+                    "description": "LLM model identifier (e.g. gpt-4o)"
+                },
+                {
+                    "key": "entity_types",
+                    "type": "array",
+                    "description": "Entity types to extract",
+                    "arrayItemType": "string"
+                },
+                {
+                    "key": "system_prompt",
+                    "type": "string",
+                    "description": "Custom system prompt for entity extraction"
+                }
             ],
             "outputs": [
-                {"key": "entities", "type": "array", "description": "Extracted entities with type, text, and confidence"},
-                {"key": "count", "type": "number", "description": "Total entities extracted"},
-                {"key": "model", "type": "string", "description": "Model used for extraction"}
+                {
+                    "key": "entities",
+                    "type": "array",
+                    "description": "Extracted entities with type, text, and confidence"
+                },
+                {
+                    "key": "count",
+                    "type": "number",
+                    "description": "Total entities extracted"
+                },
+                {
+                    "key": "model",
+                    "type": "string",
+                    "description": "Model used for extraction"
+                }
             ]
         },
         {
@@ -729,15 +1959,47 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Create a typed relationship between two existing graph nodes.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the graph.neo4j module", "required": true},
-                {"key": "from_id", "type": "string", "description": "Source node ID or lookup expression", "required": true},
-                {"key": "to_id", "type": "string", "description": "Target node ID or lookup expression", "required": true},
-                {"key": "relationship_type", "type": "string", "description": "Relationship type label (e.g. KNOWS, OWNS)", "required": true},
-                {"key": "properties", "type": "map", "description": "Relationship properties"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the graph.neo4j module",
+                    "required": true
+                },
+                {
+                    "key": "from_id",
+                    "type": "string",
+                    "description": "Source node ID or lookup expression",
+                    "required": true
+                },
+                {
+                    "key": "to_id",
+                    "type": "string",
+                    "description": "Target node ID or lookup expression",
+                    "required": true
+                },
+                {
+                    "key": "relationship_type",
+                    "type": "string",
+                    "description": "Relationship type label (e.g. KNOWS, OWNS)",
+                    "required": true
+                },
+                {
+                    "key": "properties",
+                    "type": "map",
+                    "description": "Relationship properties"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'linked'"},
-                {"key": "relationship_id", "type": "string", "description": "Internal relationship identifier"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'linked'"
+                },
+                {
+                    "key": "relationship_id",
+                    "type": "string",
+                    "description": "Internal relationship identifier"
+                }
             ]
         },
         {
@@ -745,13 +2007,35 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Register a data asset (dataset, pipeline, table) in the data catalog.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the catalog module (datahub or openmetadata)", "required": true},
-                {"key": "entity", "type": "json", "description": "Entity metadata object to register", "required": true},
-                {"key": "entity_type", "type": "string", "description": "Entity type (dataset, pipeline, dashboard)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the catalog module (datahub or openmetadata)",
+                    "required": true
+                },
+                {
+                    "key": "entity",
+                    "type": "json",
+                    "description": "Entity metadata object to register",
+                    "required": true
+                },
+                {
+                    "key": "entity_type",
+                    "type": "string",
+                    "description": "Entity type (dataset, pipeline, dashboard)"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'registered'"},
-                {"key": "entity_id", "type": "string", "description": "Catalog entity identifier (URN or UUID)"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'registered'"
+                },
+                {
+                    "key": "entity_id",
+                    "type": "string",
+                    "description": "Catalog entity identifier (URN or UUID)"
+                }
             ]
         },
         {
@@ -759,15 +2043,45 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Search the data catalog for assets matching a query.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the catalog module (datahub or openmetadata)", "required": true},
-                {"key": "query", "type": "string", "description": "Full-text search query", "required": true},
-                {"key": "entity_type", "type": "string", "description": "Filter by entity type (dataset, pipeline, dashboard)"},
-                {"key": "limit", "type": "number", "description": "Maximum number of results to return"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the catalog module (datahub or openmetadata)",
+                    "required": true
+                },
+                {
+                    "key": "query",
+                    "type": "string",
+                    "description": "Full-text search query",
+                    "required": true
+                },
+                {
+                    "key": "entity_type",
+                    "type": "string",
+                    "description": "Filter by entity type (dataset, pipeline, dashboard)"
+                },
+                {
+                    "key": "limit",
+                    "type": "number",
+                    "description": "Maximum number of results to return"
+                }
             ],
             "outputs": [
-                {"key": "results", "type": "array", "description": "Matching catalog entities"},
-                {"key": "count", "type": "number", "description": "Number of results returned"},
-                {"key": "total", "type": "number", "description": "Total matching entities in catalog"}
+                {
+                    "key": "results",
+                    "type": "array",
+                    "description": "Matching catalog entities"
+                },
+                {
+                    "key": "count",
+                    "type": "number",
+                    "description": "Number of results returned"
+                },
+                {
+                    "key": "total",
+                    "type": "number",
+                    "description": "Total matching entities in catalog"
+                }
             ]
         },
         {
@@ -775,14 +2089,41 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Register an upstream/downstream lineage relationship between two data assets.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the catalog module", "required": true},
-                {"key": "source_entity", "type": "string", "description": "Source entity URN or ID (upstream)", "required": true},
-                {"key": "target_entity", "type": "string", "description": "Target entity URN or ID (downstream)", "required": true},
-                {"key": "transformation", "type": "string", "description": "Description of the transformation between source and target"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the catalog module",
+                    "required": true
+                },
+                {
+                    "key": "source_entity",
+                    "type": "string",
+                    "description": "Source entity URN or ID (upstream)",
+                    "required": true
+                },
+                {
+                    "key": "target_entity",
+                    "type": "string",
+                    "description": "Target entity URN or ID (downstream)",
+                    "required": true
+                },
+                {
+                    "key": "transformation",
+                    "type": "string",
+                    "description": "Description of the transformation between source and target"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'registered'"},
-                {"key": "lineage_id", "type": "string", "description": "Lineage relationship identifier"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'registered'"
+                },
+                {
+                    "key": "lineage_id",
+                    "type": "string",
+                    "description": "Lineage relationship identifier"
+                }
             ]
         },
         {
@@ -790,15 +2131,51 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Query upstream or downstream lineage for a data asset.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the catalog module", "required": true},
-                {"key": "entity", "type": "string", "description": "Entity URN or ID to query lineage for", "required": true},
-                {"key": "direction", "type": "select", "description": "Lineage direction", "options": ["upstream", "downstream", "both"], "defaultValue": "both"},
-                {"key": "depth", "type": "number", "description": "Maximum traversal depth (default 3)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the catalog module",
+                    "required": true
+                },
+                {
+                    "key": "entity",
+                    "type": "string",
+                    "description": "Entity URN or ID to query lineage for",
+                    "required": true
+                },
+                {
+                    "key": "direction",
+                    "type": "select",
+                    "description": "Lineage direction",
+                    "options": [
+                        "upstream",
+                        "downstream",
+                        "both"
+                    ],
+                    "defaultValue": "both"
+                },
+                {
+                    "key": "depth",
+                    "type": "number",
+                    "description": "Maximum traversal depth (default 3)"
+                }
             ],
             "outputs": [
-                {"key": "nodes", "type": "array", "description": "Lineage graph nodes (entities)"},
-                {"key": "edges", "type": "array", "description": "Lineage graph edges (relationships)"},
-                {"key": "depth_reached", "type": "number", "description": "Actual traversal depth reached"}
+                {
+                    "key": "nodes",
+                    "type": "array",
+                    "description": "Lineage graph nodes (entities)"
+                },
+                {
+                    "key": "edges",
+                    "type": "array",
+                    "description": "Lineage graph edges (relationships)"
+                },
+                {
+                    "key": "depth_reached",
+                    "type": "number",
+                    "description": "Actual traversal depth reached"
+                }
             ]
         },
         {
@@ -806,14 +2183,40 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Validate a data payload against a YAML or JSON data contract.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the catalog module or quality.checks module", "required": true},
-                {"key": "contract", "type": "string", "description": "Contract name or file path", "required": true},
-                {"key": "data", "type": "json", "description": "Data to validate (inline JSON or template expression)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the catalog module or quality.checks module",
+                    "required": true
+                },
+                {
+                    "key": "contract",
+                    "type": "string",
+                    "description": "Contract name or file path",
+                    "required": true
+                },
+                {
+                    "key": "data",
+                    "type": "json",
+                    "description": "Data to validate (inline JSON or template expression)"
+                }
             ],
             "outputs": [
-                {"key": "valid", "type": "boolean", "description": "Whether the data satisfies all contract terms"},
-                {"key": "violations", "type": "array", "description": "List of contract violations (empty if valid)"},
-                {"key": "score", "type": "number", "description": "Compliance score 0.0–1.0"}
+                {
+                    "key": "valid",
+                    "type": "boolean",
+                    "description": "Whether the data satisfies all contract terms"
+                },
+                {
+                    "key": "violations",
+                    "type": "array",
+                    "description": "List of contract violations (empty if valid)"
+                },
+                {
+                    "key": "score",
+                    "type": "number",
+                    "description": "Compliance score 0.0\u20131.0"
+                }
             ]
         },
         {
@@ -821,17 +2224,55 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Run data quality checks (not-null, range, uniqueness, custom SQL) against a table or dataset.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the quality.checks module", "required": true},
-                {"key": "table", "type": "string", "description": "Table or dataset name to check", "required": true},
-                {"key": "rules", "type": "array", "description": "Array of quality rule objects (type, column, threshold)"},
-                {"key": "fail_threshold", "type": "number", "description": "Fraction of failed checks that triggers pipeline failure (0.0–1.0)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the quality.checks module",
+                    "required": true
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table or dataset name to check",
+                    "required": true
+                },
+                {
+                    "key": "rules",
+                    "type": "array",
+                    "description": "Array of quality rule objects (type, column, threshold)"
+                },
+                {
+                    "key": "fail_threshold",
+                    "type": "number",
+                    "description": "Fraction of failed checks that triggers pipeline failure (0.0\u20131.0)"
+                }
             ],
             "outputs": [
-                {"key": "passed", "type": "boolean", "description": "Whether all required checks passed"},
-                {"key": "total_checks", "type": "number", "description": "Total number of checks run"},
-                {"key": "passed_checks", "type": "number", "description": "Number of checks that passed"},
-                {"key": "failed_checks", "type": "number", "description": "Number of checks that failed"},
-                {"key": "results", "type": "array", "description": "Detailed per-check results"}
+                {
+                    "key": "passed",
+                    "type": "boolean",
+                    "description": "Whether all required checks passed"
+                },
+                {
+                    "key": "total_checks",
+                    "type": "number",
+                    "description": "Total number of checks run"
+                },
+                {
+                    "key": "passed_checks",
+                    "type": "number",
+                    "description": "Number of checks that passed"
+                },
+                {
+                    "key": "failed_checks",
+                    "type": "number",
+                    "description": "Number of checks that failed"
+                },
+                {
+                    "key": "results",
+                    "type": "array",
+                    "description": "Detailed per-check results"
+                }
             ]
         },
         {
@@ -839,13 +2280,36 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Validate the live schema of a table against an expected schema definition.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the quality.checks module", "required": true},
-                {"key": "table", "type": "string", "description": "Table to validate schema for", "required": true},
-                {"key": "expected_schema", "type": "json", "description": "Expected schema definition (columns with name and type)", "required": true}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the quality.checks module",
+                    "required": true
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table to validate schema for",
+                    "required": true
+                },
+                {
+                    "key": "expected_schema",
+                    "type": "json",
+                    "description": "Expected schema definition (columns with name and type)",
+                    "required": true
+                }
             ],
             "outputs": [
-                {"key": "valid", "type": "boolean", "description": "Whether the live schema matches the expected schema"},
-                {"key": "diffs", "type": "array", "description": "Schema differences found (added/removed/changed columns)"}
+                {
+                    "key": "valid",
+                    "type": "boolean",
+                    "description": "Whether the live schema matches the expected schema"
+                },
+                {
+                    "key": "diffs",
+                    "type": "array",
+                    "description": "Schema differences found (added/removed/changed columns)"
+                }
             ]
         },
         {
@@ -853,15 +2317,46 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Generate a statistical data profile for a table (row count, nulls, min/max, cardinality).",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the quality.checks module", "required": true},
-                {"key": "table", "type": "string", "description": "Table to profile", "required": true},
-                {"key": "columns", "type": "array", "description": "Columns to profile (empty = all)", "arrayItemType": "string"},
-                {"key": "sample_fraction", "type": "number", "description": "Sample fraction for large tables (0.0–1.0; 1.0 = full scan)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the quality.checks module",
+                    "required": true
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table to profile",
+                    "required": true
+                },
+                {
+                    "key": "columns",
+                    "type": "array",
+                    "description": "Columns to profile (empty = all)",
+                    "arrayItemType": "string"
+                },
+                {
+                    "key": "sample_fraction",
+                    "type": "number",
+                    "description": "Sample fraction for large tables (0.0\u20131.0; 1.0 = full scan)"
+                }
             ],
             "outputs": [
-                {"key": "row_count", "type": "number", "description": "Total row count"},
-                {"key": "columns", "type": "map", "description": "Per-column statistics (null_count, min, max, cardinality, mean)"},
-                {"key": "profile", "type": "map", "description": "Full profile object"}
+                {
+                    "key": "row_count",
+                    "type": "number",
+                    "description": "Total row count"
+                },
+                {
+                    "key": "columns",
+                    "type": "map",
+                    "description": "Per-column statistics (null_count, min, max, cardinality, mean)"
+                },
+                {
+                    "key": "profile",
+                    "type": "map",
+                    "description": "Full profile object"
+                }
             ]
         },
         {
@@ -869,15 +2364,47 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Compare data quality profiles between two tables or datasets (e.g. source vs. target).",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the quality.checks module", "required": true},
-                {"key": "table_a", "type": "string", "description": "First table (reference/source)", "required": true},
-                {"key": "table_b", "type": "string", "description": "Second table (comparison/target)", "required": true},
-                {"key": "columns", "type": "array", "description": "Columns to compare (empty = all matching)", "arrayItemType": "string"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the quality.checks module",
+                    "required": true
+                },
+                {
+                    "key": "table_a",
+                    "type": "string",
+                    "description": "First table (reference/source)",
+                    "required": true
+                },
+                {
+                    "key": "table_b",
+                    "type": "string",
+                    "description": "Second table (comparison/target)",
+                    "required": true
+                },
+                {
+                    "key": "columns",
+                    "type": "array",
+                    "description": "Columns to compare (empty = all matching)",
+                    "arrayItemType": "string"
+                }
             ],
             "outputs": [
-                {"key": "match", "type": "boolean", "description": "Whether both datasets are statistically equivalent"},
-                {"key": "diffs", "type": "array", "description": "Statistical differences found per column"},
-                {"key": "score", "type": "number", "description": "Similarity score 0.0–1.0"}
+                {
+                    "key": "match",
+                    "type": "boolean",
+                    "description": "Whether both datasets are statistically equivalent"
+                },
+                {
+                    "key": "diffs",
+                    "type": "array",
+                    "description": "Statistical differences found per column"
+                },
+                {
+                    "key": "score",
+                    "type": "number",
+                    "description": "Similarity score 0.0\u20131.0"
+                }
             ]
         },
         {
@@ -885,17 +2412,56 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Detect anomalies in time-series or tabular data using statistical methods.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the quality.checks module", "required": true},
-                {"key": "table", "type": "string", "description": "Table or measurement to analyze", "required": true},
-                {"key": "column", "type": "string", "description": "Column to detect anomalies in", "required": true},
-                {"key": "window", "type": "duration", "description": "Lookback window for baseline (e.g. 168h)"},
-                {"key": "sensitivity", "type": "number", "description": "Anomaly sensitivity multiplier (default 3.0, lower = more sensitive)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the quality.checks module",
+                    "required": true
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table or measurement to analyze",
+                    "required": true
+                },
+                {
+                    "key": "column",
+                    "type": "string",
+                    "description": "Column to detect anomalies in",
+                    "required": true
+                },
+                {
+                    "key": "window",
+                    "type": "duration",
+                    "description": "Lookback window for baseline (e.g. 168h)"
+                },
+                {
+                    "key": "sensitivity",
+                    "type": "number",
+                    "description": "Anomaly sensitivity multiplier (default 3.0, lower = more sensitive)"
+                }
             ],
             "outputs": [
-                {"key": "anomalies_detected", "type": "boolean", "description": "Whether anomalies were found"},
-                {"key": "anomalies", "type": "array", "description": "List of detected anomaly points with timestamp and value"},
-                {"key": "baseline_mean", "type": "number", "description": "Baseline mean used for detection"},
-                {"key": "baseline_stddev", "type": "number", "description": "Baseline standard deviation"}
+                {
+                    "key": "anomalies_detected",
+                    "type": "boolean",
+                    "description": "Whether anomalies were found"
+                },
+                {
+                    "key": "anomalies",
+                    "type": "array",
+                    "description": "List of detected anomaly points with timestamp and value"
+                },
+                {
+                    "key": "baseline_mean",
+                    "type": "number",
+                    "description": "Baseline mean used for detection"
+                },
+                {
+                    "key": "baseline_stddev",
+                    "type": "number",
+                    "description": "Baseline standard deviation"
+                }
             ]
         },
         {
@@ -903,16 +2469,50 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Run dbt tests for a specified model and report results.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the quality.checks module", "required": true},
-                {"key": "model", "type": "string", "description": "dbt model name to test", "required": true},
-                {"key": "select", "type": "string", "description": "dbt --select filter (e.g. tag:critical)"},
-                {"key": "profiles_dir", "type": "filepath", "description": "Path to dbt profiles directory"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the quality.checks module",
+                    "required": true
+                },
+                {
+                    "key": "model",
+                    "type": "string",
+                    "description": "dbt model name to test",
+                    "required": true
+                },
+                {
+                    "key": "select",
+                    "type": "string",
+                    "description": "dbt --select filter (e.g. tag:critical)"
+                },
+                {
+                    "key": "profiles_dir",
+                    "type": "filepath",
+                    "description": "Path to dbt profiles directory"
+                }
             ],
             "outputs": [
-                {"key": "passed", "type": "boolean", "description": "Whether all dbt tests passed"},
-                {"key": "total", "type": "number", "description": "Total dbt tests run"},
-                {"key": "failed", "type": "number", "description": "Number of failed tests"},
-                {"key": "results", "type": "array", "description": "Per-test results with name and status"}
+                {
+                    "key": "passed",
+                    "type": "boolean",
+                    "description": "Whether all dbt tests passed"
+                },
+                {
+                    "key": "total",
+                    "type": "number",
+                    "description": "Total dbt tests run"
+                },
+                {
+                    "key": "failed",
+                    "type": "number",
+                    "description": "Number of failed tests"
+                },
+                {
+                    "key": "results",
+                    "type": "array",
+                    "description": "Per-test results with name and status"
+                }
             ]
         },
         {
@@ -920,15 +2520,45 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Run Soda data quality checks defined in a checks YAML file.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the quality.checks module", "required": true},
-                {"key": "table", "type": "string", "description": "Table to run Soda checks against", "required": true},
-                {"key": "checks", "type": "array", "description": "List of Soda check definitions (or path to checks YAML)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the quality.checks module",
+                    "required": true
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table to run Soda checks against",
+                    "required": true
+                },
+                {
+                    "key": "checks",
+                    "type": "array",
+                    "description": "List of Soda check definitions (or path to checks YAML)"
+                }
             ],
             "outputs": [
-                {"key": "passed", "type": "boolean", "description": "Whether all Soda checks passed"},
-                {"key": "total", "type": "number", "description": "Total checks run"},
-                {"key": "failed", "type": "number", "description": "Number of failed checks"},
-                {"key": "results", "type": "array", "description": "Per-check results with outcome and details"}
+                {
+                    "key": "passed",
+                    "type": "boolean",
+                    "description": "Whether all Soda checks passed"
+                },
+                {
+                    "key": "total",
+                    "type": "number",
+                    "description": "Total checks run"
+                },
+                {
+                    "key": "failed",
+                    "type": "number",
+                    "description": "Number of failed checks"
+                },
+                {
+                    "key": "results",
+                    "type": "array",
+                    "description": "Per-check results with outcome and details"
+                }
             ]
         },
         {
@@ -936,15 +2566,46 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Run a Great Expectations validation suite against a table or batch.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the quality.checks module", "required": true},
-                {"key": "suite", "type": "string", "description": "Great Expectations expectation suite name", "required": true},
-                {"key": "table", "type": "string", "description": "Table or batch name to validate", "required": true},
-                {"key": "context_root", "type": "filepath", "description": "Great Expectations context root directory"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the quality.checks module",
+                    "required": true
+                },
+                {
+                    "key": "suite",
+                    "type": "string",
+                    "description": "Great Expectations expectation suite name",
+                    "required": true
+                },
+                {
+                    "key": "table",
+                    "type": "string",
+                    "description": "Table or batch name to validate",
+                    "required": true
+                },
+                {
+                    "key": "context_root",
+                    "type": "filepath",
+                    "description": "Great Expectations context root directory"
+                }
             ],
             "outputs": [
-                {"key": "success", "type": "boolean", "description": "Whether the validation suite passed"},
-                {"key": "statistics", "type": "map", "description": "Validation statistics (evaluated, successful, unsuccessful)"},
-                {"key": "results", "type": "array", "description": "Per-expectation results"}
+                {
+                    "key": "success",
+                    "type": "boolean",
+                    "description": "Whether the validation suite passed"
+                },
+                {
+                    "key": "statistics",
+                    "type": "map",
+                    "description": "Validation statistics (evaluated, successful, unsuccessful)"
+                },
+                {
+                    "key": "results",
+                    "type": "array",
+                    "description": "Per-expectation results"
+                }
             ]
         },
         {
@@ -952,14 +2613,40 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Generate a migration plan by diffing current and desired schema states.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the migrate.schema module", "required": true},
-                {"key": "current", "type": "json", "description": "Current schema state (auto-detected from target if omitted)"},
-                {"key": "desired", "type": "json", "description": "Desired schema state or migration file", "required": true}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the migrate.schema module",
+                    "required": true
+                },
+                {
+                    "key": "current",
+                    "type": "json",
+                    "description": "Current schema state (auto-detected from target if omitted)"
+                },
+                {
+                    "key": "desired",
+                    "type": "json",
+                    "description": "Desired schema state or migration file",
+                    "required": true
+                }
             ],
             "outputs": [
-                {"key": "plan", "type": "map", "description": "Generated migration plan with operations list"},
-                {"key": "breaking_changes", "type": "boolean", "description": "Whether the plan contains breaking changes"},
-                {"key": "operations", "type": "array", "description": "List of migration operations (add_column, drop_column, etc.)"}
+                {
+                    "key": "plan",
+                    "type": "map",
+                    "description": "Generated migration plan with operations list"
+                },
+                {
+                    "key": "breaking_changes",
+                    "type": "boolean",
+                    "description": "Whether the plan contains breaking changes"
+                },
+                {
+                    "key": "operations",
+                    "type": "array",
+                    "description": "List of migration operations (add_column, drop_column, etc.)"
+                }
             ]
         },
         {
@@ -967,13 +2654,35 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Apply a previously generated migration plan to the target database.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the migrate.schema module", "required": true},
-                {"key": "plan", "type": "map", "description": "Migration plan from step.migrate_plan", "required": true},
-                {"key": "dry_run", "type": "boolean", "description": "When true, validate the plan without executing it"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the migrate.schema module",
+                    "required": true
+                },
+                {
+                    "key": "plan",
+                    "type": "map",
+                    "description": "Migration plan from step.migrate_plan",
+                    "required": true
+                },
+                {
+                    "key": "dry_run",
+                    "type": "boolean",
+                    "description": "When true, validate the plan without executing it"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'applied' or 'dry_run'"},
-                {"key": "operations_applied", "type": "number", "description": "Number of operations applied"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'applied' or 'dry_run'"
+                },
+                {
+                    "key": "operations_applied",
+                    "type": "number",
+                    "description": "Number of operations applied"
+                }
             ]
         },
         {
@@ -981,14 +2690,39 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Run pending SQL migration scripts from the migrations directory up to an optional target version.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the migrate.schema module", "required": true},
-                {"key": "target_version", "type": "string", "description": "Migration version to run to (empty = latest)"},
-                {"key": "dry_run", "type": "boolean", "description": "When true, list pending migrations without executing"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the migrate.schema module",
+                    "required": true
+                },
+                {
+                    "key": "target_version",
+                    "type": "string",
+                    "description": "Migration version to run to (empty = latest)"
+                },
+                {
+                    "key": "dry_run",
+                    "type": "boolean",
+                    "description": "When true, list pending migrations without executing"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'ok'"},
-                {"key": "applied", "type": "number", "description": "Number of migrations applied"},
-                {"key": "version", "type": "string", "description": "Current schema version after migration"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'ok'"
+                },
+                {
+                    "key": "applied",
+                    "type": "number",
+                    "description": "Number of migrations applied"
+                },
+                {
+                    "key": "version",
+                    "type": "string",
+                    "description": "Current schema version after migration"
+                }
             ]
         },
         {
@@ -996,13 +2730,34 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Roll back the last applied migration or roll back to a specific version.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the migrate.schema module", "required": true},
-                {"key": "target_version", "type": "string", "description": "Version to roll back to (empty = roll back one step)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the migrate.schema module",
+                    "required": true
+                },
+                {
+                    "key": "target_version",
+                    "type": "string",
+                    "description": "Version to roll back to (empty = roll back one step)"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'rolled_back'"},
-                {"key": "reverted", "type": "number", "description": "Number of migrations reverted"},
-                {"key": "version", "type": "string", "description": "Current schema version after rollback"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'rolled_back'"
+                },
+                {
+                    "key": "reverted",
+                    "type": "number",
+                    "description": "Number of migrations reverted"
+                },
+                {
+                    "key": "version",
+                    "type": "string",
+                    "description": "Current schema version after rollback"
+                }
             ]
         },
         {
@@ -1010,12 +2765,29 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Return the current migration state including applied, pending, and current version.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the migrate.schema module", "required": true}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the migrate.schema module",
+                    "required": true
+                }
             ],
             "outputs": [
-                {"key": "current_version", "type": "string", "description": "Current applied migration version"},
-                {"key": "pending", "type": "array", "description": "List of pending migration versions"},
-                {"key": "applied", "type": "array", "description": "List of applied migration versions"}
+                {
+                    "key": "current_version",
+                    "type": "string",
+                    "description": "Current applied migration version"
+                },
+                {
+                    "key": "pending",
+                    "type": "array",
+                    "description": "List of pending migration versions"
+                },
+                {
+                    "key": "applied",
+                    "type": "array",
+                    "description": "List of applied migration versions"
+                }
             ]
         },
         {
@@ -1023,12 +2795,29 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Perform the expand phase of an expand-contract migration: add new columns/tables without removing old ones.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the migrate.schema module", "required": true},
-                {"key": "changes", "type": "array", "description": "List of backward-compatible additions (add_column, add_index, add_table)"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the migrate.schema module",
+                    "required": true
+                },
+                {
+                    "key": "changes",
+                    "type": "array",
+                    "description": "List of backward-compatible additions (add_column, add_index, add_table)"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'expanded'"},
-                {"key": "operations_applied", "type": "number", "description": "Number of expand operations applied"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'expanded'"
+                },
+                {
+                    "key": "operations_applied",
+                    "type": "number",
+                    "description": "Number of expand operations applied"
+                }
             ]
         },
         {
@@ -1036,12 +2825,29 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Perform the contract phase of an expand-contract migration: remove old columns/tables after all consumers have migrated.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the migrate.schema module", "required": true},
-                {"key": "changes", "type": "array", "description": "List of removals (drop_column, drop_index, drop_table) to finalize"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the migrate.schema module",
+                    "required": true
+                },
+                {
+                    "key": "changes",
+                    "type": "array",
+                    "description": "List of removals (drop_column, drop_index, drop_table) to finalize"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Result: 'contracted'"},
-                {"key": "operations_applied", "type": "number", "description": "Number of contract operations applied"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Result: 'contracted'"
+                },
+                {
+                    "key": "operations_applied",
+                    "type": "number",
+                    "description": "Number of contract operations applied"
+                }
             ]
         },
         {
@@ -1049,12 +2855,29 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Check the status of an in-progress expand-contract migration.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the migrate.schema module", "required": true}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the migrate.schema module",
+                    "required": true
+                }
             ],
             "outputs": [
-                {"key": "phase", "type": "string", "description": "Current phase: expand, transition, or contract"},
-                {"key": "ready_to_contract", "type": "boolean", "description": "Whether all consumers have migrated and contraction is safe"},
-                {"key": "pending_columns", "type": "array", "description": "Old columns/tables still pending removal"}
+                {
+                    "key": "phase",
+                    "type": "string",
+                    "description": "Current phase: expand, transition, or contract"
+                },
+                {
+                    "key": "ready_to_contract",
+                    "type": "boolean",
+                    "description": "Whether all consumers have migrated and contraction is safe"
+                },
+                {
+                    "key": "pending_columns",
+                    "type": "array",
+                    "description": "Old columns/tables still pending removal"
+                }
             ]
         },
         {
@@ -1062,14 +2885,39 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Execute a full automated schema evolution pipeline (detect drift, plan, expand, notify consumers, contract).",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the migrate.schema module", "required": true},
-                {"key": "pipeline", "type": "string", "description": "Evolution pipeline configuration name or inline spec"},
-                {"key": "auto_apply", "type": "boolean", "description": "Automatically apply non-breaking changes without manual approval"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the migrate.schema module",
+                    "required": true
+                },
+                {
+                    "key": "pipeline",
+                    "type": "string",
+                    "description": "Evolution pipeline configuration name or inline spec"
+                },
+                {
+                    "key": "auto_apply",
+                    "type": "boolean",
+                    "description": "Automatically apply non-breaking changes without manual approval"
+                }
             ],
             "outputs": [
-                {"key": "status", "type": "string", "description": "Pipeline status: 'completed', 'pending_approval', or 'failed'"},
-                {"key": "phases_completed", "type": "array", "description": "List of pipeline phases completed"},
-                {"key": "breaking_changes", "type": "boolean", "description": "Whether breaking changes were detected"}
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Pipeline status: 'completed', 'pending_approval', or 'failed'"
+                },
+                {
+                    "key": "phases_completed",
+                    "type": "array",
+                    "description": "List of pipeline phases completed"
+                },
+                {
+                    "key": "breaking_changes",
+                    "type": "boolean",
+                    "description": "Whether breaking changes were detected"
+                }
             ]
         },
         {
@@ -1077,13 +2925,34 @@
             "plugin": "workflow-plugin-data-engineering",
             "description": "Verify that a schema evolution pipeline completed successfully and all consumers are on the new schema.",
             "configFields": [
-                {"key": "module", "type": "string", "description": "Name of the migrate.schema module", "required": true},
-                {"key": "pipeline", "type": "string", "description": "Evolution pipeline configuration name to verify"}
+                {
+                    "key": "module",
+                    "type": "string",
+                    "description": "Name of the migrate.schema module",
+                    "required": true
+                },
+                {
+                    "key": "pipeline",
+                    "type": "string",
+                    "description": "Evolution pipeline configuration name to verify"
+                }
             ],
             "outputs": [
-                {"key": "verified", "type": "boolean", "description": "Whether all consumers are on the new schema"},
-                {"key": "lagging_consumers", "type": "array", "description": "Consumers still on the old schema (if any)"},
-                {"key": "status", "type": "string", "description": "Verification result: 'verified' or 'pending'"}
+                {
+                    "key": "verified",
+                    "type": "boolean",
+                    "description": "Whether all consumers are on the new schema"
+                },
+                {
+                    "key": "lagging_consumers",
+                    "type": "array",
+                    "description": "Consumers still on the old schema (if any)"
+                },
+                {
+                    "key": "status",
+                    "type": "string",
+                    "description": "Verification result: 'verified' or 'pending'"
+                }
             ]
         }
     ]
